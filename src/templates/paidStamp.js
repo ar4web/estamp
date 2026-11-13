@@ -1,15 +1,27 @@
-const C = 310;
+import { C, INK, F, oval, txt, rule } from "./shared.js";
+
+const ink = INK.red;
 
 export default {
   id: "paidStamp",
   name: "Paid Oval",
   tags: ["oval", "finance"],
   build: () => [
-    { type: "ellipse", rx: 262, ry: 168, cx: C, cy: C, strokeWidth: 9 },
-    { type: "ellipse", rx: 246, ry: 152, cx: C, cy: C, strokeWidth: 2 },
-    { type: "text", text: "PAID", fontSize: 108, cx: C, cy: C - 32, w: 440, charSpacing: 60 },
-    { type: "line", x1: C - 170, y1: C + 36, x2: C + 170, y2: C + 36, strokeWidth: 3 },
-    { type: "text", text: "DATE: ____ / ____ / ______", fontSize: 22, fontFamily: "Roboto Mono", fontWeight: "400", cx: C, cy: C + 64, w: 400 },
-    { type: "text", text: "INVOICE # ______________", fontSize: 22, fontFamily: "Roboto Mono", fontWeight: "400", cx: C, cy: C + 100, w: 400 },
+    oval(258, 164, 9, ink, "Outer"),
+    oval(240, 146, 2, ink, "Inner"),
+    txt("PAID", 88, F.black, ink, C - 28, { fontWeight: "400", charSpacing: 20, w: 400, name: "Paid" }),
+    rule(C + 34, 150, ink, 2.5, "Rule"),
+    txt("DATE: ____ / ____ / ______", 16, F.mono, ink, C + 62, {
+      fontWeight: "400",
+      charSpacing: 0,
+      w: 380,
+      name: "Date line",
+    }),
+    txt("INVOICE # ______________", 16, F.mono, ink, C + 96, {
+      fontWeight: "400",
+      charSpacing: 0,
+      w: 380,
+      name: "Invoice line",
+    }),
   ],
 };

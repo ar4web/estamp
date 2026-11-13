@@ -1,5 +1,6 @@
-const C = 310;
-const INK = "#8b0000";
+import { C, INK, F, box, txt } from "./shared.js";
+
+const ink = INK.red;
 
 export default {
   id: "crStamp",
@@ -8,44 +9,19 @@ export default {
   order: 43,
   tags: ["arabic", "register", "cr"],
   build: () => [
-    { type: "rect", w: 500, h: 220, rx: 6, cx: C, cy: C, stroke: INK, strokeWidth: 8, name: "Border" },
-    {
-      type: "text",
-      text: "سجل تجاري",
-      fontSize: 28,
-      fontFamily: "Cairo",
+    box(500, 210, 8, ink, "Border", { rx: 6 }),
+    txt("سجل تجاري", 26, F.arabic, ink, C - 52, {
       fontWeight: "700",
-      fill: INK,
       charSpacing: 0,
-      cx: C,
-      cy: C - 58,
-      w: 440,
+      w: 420,
       name: "CR AR",
-    },
-    {
-      type: "text",
-      text: "C.R. NO.",
-      fontSize: 22,
-      fontFamily: "Oswald",
-      fontWeight: "700",
-      fill: INK,
-      charSpacing: 80,
-      cx: C,
-      cy: C - 12,
-      w: 440,
-      name: "CR EN",
-    },
-    {
-      type: "text",
-      text: "____________",
-      fontSize: 28,
-      fontFamily: "Roboto Mono",
+    }),
+    txt("C.R. NO.", 18, F.stamp, ink, C - 8, { charSpacing: 80, w: 420, name: "CR EN" }),
+    txt("____________", 24, F.mono, ink, C + 48, {
       fontWeight: "400",
-      fill: INK,
-      cx: C,
-      cy: C + 48,
-      w: 440,
+      charSpacing: 0,
+      w: 420,
       name: "Number line",
-    },
+    }),
   ],
 };

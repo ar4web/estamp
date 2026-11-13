@@ -1,4 +1,3 @@
-import { useRef, useState } from "react";
 import {
   AlignCenter,
   AlignLeft,
@@ -11,27 +10,14 @@ import {
   Spline,
   Type,
   Underline,
-  Upload,
 } from "lucide-react";
 import useStampStore from "../../store/useStampStore";
 import { rebuildArc, toggleTextCurve } from "../../utils/canvas";
 import { DATE_FORMATS, fieldText } from "../../utils/fields";
 import { isRTL } from "../../utils/arabic";
-import { FONT_SETS, getCustomFonts, importFontFile, loadFont } from "../../utils/fonts";
+import { fabricFamily, plainFamily, refreshTextObject } from "../../utils/fonts";
 import { Row, Slider } from "../ui";
 import Tooltip from "../Tooltip";
-import FontPicker from "../FontPicker";
-import TransformBlock from "./TransformBlock";
-
-const WEIGHTS = [
-  { v: "300", label: "Light 300" },
-  { v: "400", label: "Regular 400" },
-  { v: "500", label: "Medium 500" },
-  { v: "600", label: "SemiBold 600" },
-  { v: "700", label: "Bold 700" },
-  { v: "800", label: "ExtraBold 800" },
-  { v: "900", label: "Black 900" },
-];
 
 function IconBtn({ label, on, onClick, children, danger }) {
   return (
@@ -62,12 +48,14 @@ export default function TextProperties({ obj, kind }) {
       rebuildArc(canvas, obj, patch);
     } else {
       const next = { ...patch };
+      if (next.fontFamily) next.fontFamily = fabricFamily(next.fontFamily);
       if (next.text !== undefined) {
         const r = isRTL(next.text);
         next.direction = r ? "rtl" : "ltr";
         if (r) next.charSpacing = 0;
       }
       obj.set(next);
+      refreshTextObject(obj);
       obj.setCoords();
       canvas.requestRenderAll();
     }
@@ -75,30 +63,8 @@ export default function TextProperties({ obj, kind }) {
     touch();
   };
 
-  const setFont = async (family) => {
-    await loadFont(family);
-    update({ fontFamily: family });
-  };
-
-  const toast = useStampStore((s) => s.toast);
-  const fontFileRef = useRef(null);
-  const [custom, setCustom] = useState(getCustomFonts());
-
-  const onImportFont = async (files) => {
-    const file = files?.[0];
-    if (!file) return;
-    try {
-      const fam = await importFontFile(file);
-      setCustom(getCustomFonts());
-      update({ fontFamily: fam });
-      toast(`Font "${fam}" imported and applied`, "success");
-    } catch (e) {
-      toast(e.message, "error");
-    }
-  };
-
   const val = (key, fallback) => (isArc ? meta[key] ?? fallback : obj[key] ?? fallback);
-  const family = val("fontFamily", "Oswald");
+  const family = plainFamily(val("fontFamily", "Oswald"));
   const weight = String(val("fontWeight", "400"));
   const currentText = isArc ? meta.text || "" : obj.text || "";
 
@@ -254,7 +220,7 @@ export default function TextProperties({ obj, kind }) {
           rows={2}
           aria-label="Selected text content"
           dir={rtl ? "rtl" : "ltr"}
-          style={{ fontFamily: family, fontWeight: weight, fontSize: 12, lineHeight: 1.4 }}
+          style={{ fontFamily: fabricFamily(family), fontWeight: weight, fontSize: 12, lineHeight: 1.4 }}
           value={currentText}
           onChange={(e) => update({ text: e.target.value }, { silent: true })}
           onBlur={() => commit()}
@@ -376,56 +342,6 @@ export default function TextProperties({ obj, kind }) {
         </Row>
       )}
 
-      <Row
-        label="Typeface"
-        hint={
-          <Tooltip label="Upload font" hint="TTF / OTF / WOFF" side="top">
-            <button
-              type="button"
-              className="btn btn-icon !h-6 !w-6 !min-h-6 !min-w-6"
-              aria-label="Import font file"
-              onClick={() => fontFileRef.current?.click()}
-            >
-              <Upload size={12} />
-            </button>
-          </Tooltip>
-        }
-      >
-        <input
-          ref={fontFileRef}
-          type="file"
-          accept=".ttf,.otf,.woff,.woff2,font/*"
-          className="hidden"
-          onChange={(e) => {
-            onImportFont(e.target.files);
-            e.target.value = "";
-          }}
-        />
-        <FontPicker
-          fonts={[...custom, ...FONT_SETS.flatMap((g) => g.fonts)]}
-          value={family}
-          onSelect={setFont}
-          grouped
-        />
-      </Row>
-
-      <Row label="Weight">
-        <div className="weight-grid cols-4">
-          {WEIGHTS.map((w) => (
-            <button
-              key={w.v}
-              type="button"
-              className={`btn text-[10px] ${weight === w.v ? "btn-on" : ""}`}
-              aria-pressed={weight === w.v}
-              style={{ fontFamily: family, fontWeight: w.v }}
-              onClick={() => update({ fontWeight: w.v })}
-            >
-              {w.label.replace(/ \d+$/, "")}
-            </button>
-          ))}
-        </div>
-      </Row>
-
       <Slider
         label="Size"
         value={val("fontSize", 36)}
@@ -463,20 +379,6 @@ export default function TextProperties({ obj, kind }) {
             max={30}
             step={0.5}
             onChange={(v) => update({ letterSpacing: v })}
-          />
-          <Slider
-            label="Rotate"
-            value={Math.round(obj.angle ?? 0)}
-            min={-45}
-            max={45}
-            onChange={(v) => {
-              obj.set({ angle: v });
-              obj.setCoords();
-              canvas.requestRenderAll();
-              commit();
-              touch();
-            }}
-            suffix="°"
           />
           <Tooltip label="Balance arc ends" side="top">
             <button
@@ -516,9 +418,6 @@ export default function TextProperties({ obj, kind }) {
         </>
       )}
 
-      <div className="border-t pt-3" style={{ borderColor: "var(--border-soft)" }}>
-        <TransformBlock obj={obj} />
-      </div>
     </div>
   );
 }

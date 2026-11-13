@@ -1,5 +1,6 @@
-const C = 310;
-const INK = "#003399";
+import { C, INK, F, box, txt, rule } from "./shared.js";
+
+const ink = INK.blue;
 
 export default {
   id: "squareSeal",
@@ -8,48 +9,17 @@ export default {
   order: 10,
   tags: ["square", "double border"],
   build: () => [
-    { type: "rect", w: 440, h: 440, rx: 0, cx: C, cy: C, stroke: INK, strokeWidth: 9, name: "Outer square" },
-    { type: "rect", w: 404, h: 404, rx: 0, cx: C, cy: C, stroke: INK, strokeWidth: 2, name: "Inner square" },
-    {
-      type: "text",
-      text: "OFFICIAL",
-      fontSize: 44,
-      fontFamily: "Oswald",
-      fontWeight: "700",
-      fill: INK,
-      charSpacing: 120,
-      cx: C,
-      cy: C - 110,
-      w: 380,
-      name: "Header",
-    },
-    { type: "line", x1: C - 140, y1: C - 62, x2: C + 140, y2: C - 62, stroke: INK, strokeWidth: 2.5, name: "Rule top" },
-    {
-      type: "text",
-      text: "SEAL",
-      fontSize: 88,
-      fontFamily: "Oswald",
-      fontWeight: "900",
-      fill: INK,
-      charSpacing: 140,
-      cx: C,
-      cy: C + 4,
-      w: 380,
-      name: "Centre",
-    },
-    { type: "line", x1: C - 140, y1: C + 70, x2: C + 140, y2: C + 70, stroke: INK, strokeWidth: 2.5, name: "Rule bottom" },
-    {
-      type: "text",
-      text: "DOCUMENT CONTROL",
-      fontSize: 20,
-      fontFamily: "Inter",
+    box(440, 440, 9, ink, "Outer square", { rx: 0 }),
+    box(404, 404, 2, ink, "Inner square", { rx: 0 }),
+    txt("OFFICIAL", 40, F.stamp, ink, C - 108, { charSpacing: 100, w: 340, name: "Header" }),
+    rule(C - 58, 130, ink, 2.5, "Rule top"),
+    txt("SEAL", 76, F.classic, ink, C + 4, { fontWeight: "700", charSpacing: 80, w: 340, name: "Centre" }),
+    rule(C + 72, 130, ink, 2.5, "Rule bottom"),
+    txt("DOCUMENT CONTROL", 16, F.ui, ink, C + 116, {
       fontWeight: "600",
-      fill: INK,
-      charSpacing: 120,
-      cx: C,
-      cy: C + 116,
-      w: 380,
+      charSpacing: 90,
+      w: 340,
       name: "Footer",
-    },
+    }),
   ],
 };

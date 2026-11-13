@@ -1,15 +1,22 @@
-const C = 310;
+import { C, INK, F, txt, rule, star } from "./shared.js";
+
+const ink = INK.blue;
 
 export default {
   id: "hexagonBadge",
   name: "Hexagon Badge",
   tags: ["hexagon", "badge"],
   build: () => [
-    { type: "hexagon", r: 250, rotation: -90, cx: C, cy: C, strokeWidth: 9 },
-    { type: "hexagon", r: 228, rotation: -90, cx: C, cy: C, strokeWidth: 2 },
-    { type: "star", outer: 58, inner: 24, points: 6, cx: C, cy: C - 86, fill: "#000000", strokeWidth: 0, name: "Icon" },
-    { type: "text", text: "CERTIFIED", fontSize: 54, cx: C, cy: C + 12, w: 380, charSpacing: 60 },
-    { type: "line", x1: C - 120, y1: C + 52, x2: C + 120, y2: C + 52, strokeWidth: 3 },
-    { type: "text", text: "QUALITY ASSURED", fontSize: 20, fontFamily: "Inter", fontWeight: "600", charSpacing: 120, cx: C, cy: C + 82, w: 380 },
+    { type: "hexagon", r: 246, rotation: -90, cx: C, cy: C, strokeWidth: 9, stroke: ink, name: "Outer hex" },
+    { type: "hexagon", r: 224, rotation: -90, cx: C, cy: C, strokeWidth: 2, stroke: ink, name: "Inner hex" },
+    star(C, C - 78, 42, 18, ink, "Icon", 6),
+    txt("CERTIFIED", 40, F.black, ink, C + 16, { fontWeight: "400", charSpacing: 20, w: 320, name: "Title" }),
+    rule(C + 54, 110, ink, 2.5, "Rule"),
+    txt("QUALITY ASSURED", 16, F.ui, ink, C + 84, {
+      fontWeight: "600",
+      charSpacing: 80,
+      w: 300,
+      name: "Subtitle",
+    }),
   ],
 };

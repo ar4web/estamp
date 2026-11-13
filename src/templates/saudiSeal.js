@@ -1,5 +1,6 @@
-const C = 310;
-const INK = "#006c35";
+import { C, INK, F, ring, arc, txt } from "./shared.js";
+
+const ink = INK.green;
 
 export default {
   id: "saudiSeal",
@@ -8,49 +9,17 @@ export default {
   order: 41,
   tags: ["arabic", "ksa", "official"],
   build: () => [
-    { type: "circle", r: 252, cx: C, cy: C, stroke: INK, strokeWidth: 7, name: "Outer ring" },
-    { type: "circle", r: 234, cx: C, cy: C, stroke: INK, strokeWidth: 2, name: "Middle ring" },
-    { type: "circle", r: 160, cx: C, cy: C, stroke: INK, strokeWidth: 2, name: "Inner ring" },
-    {
-      type: "arc",
-      text: "المملكة العربية السعودية",
-      radius: 194,
-      position: "top",
-      fontSize: 26,
-      fontFamily: "Cairo",
-      fontWeight: "700",
-      fill: INK,
+    ring(252, 7, ink, "Outer ring"),
+    ring(232, 2, ink, "Middle ring"),
+    ring(154, 2, ink, "Inner ring"),
+    arc("المملكة العربية السعودية", 190, "top", 22, F.arabic, ink, {
       letterSpacing: 1,
-      cx: C,
-      cy: C,
       name: "Arabic arc",
-    },
-    {
-      type: "arc",
-      text: "KINGDOM OF SAUDI ARABIA",
-      radius: 194,
-      position: "bottom",
-      fontSize: 15,
-      fontFamily: "Oswald",
-      fontWeight: "700",
-      fill: INK,
+    }),
+    arc("KINGDOM OF SAUDI ARABIA", 190, "bottom", 13, F.stamp, ink, {
       letterSpacing: 2,
-      cx: C,
-      cy: C,
       name: "English arc",
-    },
-    {
-      type: "text",
-      text: "KSA",
-      fontSize: 48,
-      fontFamily: "Oswald",
-      fontWeight: "900",
-      fill: INK,
-      charSpacing: 40,
-      cx: C,
-      cy: C,
-      w: 280,
-      name: "Centre",
-    },
+    }),
+    txt("KSA", 44, F.stamp, ink, C, { fontWeight: "900", charSpacing: 30, w: 240, name: "Centre" }),
   ],
 };

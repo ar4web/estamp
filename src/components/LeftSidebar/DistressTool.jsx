@@ -81,9 +81,6 @@ export default function DistressTool() {
           Restore vector
         </button>
       )}
-      <p className="text-[9px] leading-relaxed" style={{ color: "var(--text-mute)" }}>
-        Worn rubber on paper. Rasterizes the selected layer. Restore vector undoes it.
-      </p>
     </div>
   );
 }

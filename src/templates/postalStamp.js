@@ -1,5 +1,6 @@
-const C = 310;
-const INK = "#003399";
+import { C, INK, F, box, txt, rule } from "./shared.js";
+
+const ink = INK.blue;
 
 export default {
   id: "postalStamp",
@@ -8,47 +9,16 @@ export default {
   order: 42,
   tags: ["postal", "zip", "arabic"],
   build: () => [
-    { type: "rect", w: 480, h: 260, rx: 8, cx: C, cy: C, stroke: INK, strokeWidth: 8, name: "Border" },
-    { type: "rect", w: 452, h: 232, rx: 4, cx: C, cy: C, stroke: INK, strokeWidth: 2, name: "Inner" },
-    {
-      type: "text",
-      text: "ص.ب",
-      fontSize: 36,
-      fontFamily: "Cairo",
-      fontWeight: "700",
-      fill: INK,
-      charSpacing: 0,
-      cx: C,
-      cy: C - 70,
-      w: 400,
-      name: "PO AR",
-    },
-    {
-      type: "text",
-      text: "P.O. BOX",
-      fontSize: 28,
-      fontFamily: "Oswald",
-      fontWeight: "700",
-      fill: INK,
-      charSpacing: 80,
-      cx: C,
-      cy: C - 22,
-      w: 400,
-      name: "PO EN",
-    },
-    { type: "line", x1: C - 180, y1: C + 16, x2: C + 180, y2: C + 16, stroke: INK, strokeWidth: 2, name: "Rule" },
-    {
-      type: "text",
-      text: "الرمز البريدي  ____",
-      fontSize: 22,
-      fontFamily: "Cairo",
+    box(480, 250, 8, ink, "Border", { rx: 8 }),
+    box(450, 220, 2, ink, "Inner", { rx: 4 }),
+    txt("ص.ب", 32, F.arabic, ink, C - 64, { fontWeight: "700", charSpacing: 0, w: 380, name: "PO AR" }),
+    txt("P.O. BOX", 22, F.stamp, ink, C - 18, { charSpacing: 80, w: 380, name: "PO EN" }),
+    rule(C + 18, 170, ink, 2, "Rule"),
+    txt("الرمز البريدي  ____", 18, F.arabic, ink, C + 58, {
       fontWeight: "600",
-      fill: INK,
       charSpacing: 0,
-      cx: C,
-      cy: C + 58,
-      w: 400,
+      w: 380,
       name: "ZIP",
-    },
+    }),
   ],
 };

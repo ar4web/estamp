@@ -193,7 +193,7 @@ export default function CanvasArea() {
     <main
       id="canvas-workspace"
       tabIndex={-1}
-      className="relative min-w-0 flex-1 overflow-hidden border"
+      className="relative flex min-w-0 flex-1 flex-col overflow-hidden border"
       style={{ borderColor: "var(--border)" }}
     >
       <div
@@ -213,7 +213,7 @@ export default function CanvasArea() {
           canvas.requestRenderAll();
           useStampStore.getState().syncSelection();
         }}
-        className={`scroll-thin absolute inset-0 overflow-auto ${
+        className={`scroll-thin relative min-h-0 flex-1 overflow-auto ${
           workspaceColor === "checkerboard" ? "workspace-checkerboard" : ""
         }`}
         style={{

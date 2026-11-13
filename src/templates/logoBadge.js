@@ -1,4 +1,6 @@
-const C = 310;
+import { C, INK, F, box, txt } from "./shared.js";
+
+const ink = INK.navy;
 
 export default {
   id: "logoBadge",
@@ -6,22 +8,55 @@ export default {
   tags: ["logo", "rect", "brand"],
   logo: true,
   build: () => [
-    { type: "rect", w: 500, h: 250, rx: 0, cx: C, cy: C, strokeWidth: 8 },
-    { type: "rect", w: 474, h: 224, rx: 0, cx: C, cy: C, strokeWidth: 1.5 },
+    box(500, 240, 8, ink, "Outer", { rx: 0 }),
+    box(472, 212, 1.5, ink, "Inner", { rx: 0 }),
     {
       type: "rect",
-      w: 120,
-      h: 120,
+      w: 112,
+      h: 112,
       cx: C - 150,
       cy: C,
       strokeWidth: 2,
-      strokeDashArray: [10, 7],
+      stroke: ink,
+      strokeDashArray: [8, 6],
       name: "Logo area",
     },
-    { type: "text", text: "LOGO", fontSize: 20, fontFamily: "Inter", fontWeight: "600", charSpacing: 120, cx: C - 150, cy: C, w: 130 },
-    { type: "text", text: "BRAND NAME", fontSize: 40, cx: C + 85, cy: C - 44, w: 290 },
-    { type: "line", x1: C - 60, y1: C - 10, x2: C + 230, y2: C - 10, strokeWidth: 2 },
-    { type: "text", text: "QUALITY CERTIFIED", fontSize: 19, fontFamily: "Inter", fontWeight: "600", charSpacing: 80, cx: C + 85, cy: C + 22, w: 290 },
-    { type: "text", text: "EST. 2024", fontSize: 17, fontFamily: "Roboto Mono", fontWeight: "400", cx: C + 85, cy: C + 56, w: 290 },
+    txt("LOGO", 16, F.ui, ink, C, {
+      fontWeight: "600",
+      charSpacing: 80,
+      cx: C - 150,
+      w: 110,
+      name: "Logo label",
+    }),
+    txt("BRAND NAME", 30, F.display, ink, C - 40, {
+      charSpacing: 20,
+      cx: C + 86,
+      w: 260,
+      name: "Brand",
+    }),
+    {
+      type: "line",
+      x1: C - 48,
+      y1: C - 6,
+      x2: C + 220,
+      y2: C - 6,
+      stroke: ink,
+      strokeWidth: 2,
+      name: "Rule",
+    },
+    txt("QUALITY CERTIFIED", 15, F.ui, ink, C + 24, {
+      fontWeight: "600",
+      charSpacing: 50,
+      cx: C + 86,
+      w: 260,
+      name: "Tagline",
+    }),
+    txt("EST. 2024", 14, F.mono, ink, C + 56, {
+      fontWeight: "400",
+      charSpacing: 0,
+      cx: C + 86,
+      w: 260,
+      name: "Year",
+    }),
   ],
 };

@@ -1,36 +1,29 @@
-const C = 310;
+import { C, INK, F, box, txt, rule } from "./shared.js";
+
+const ink = INK.blue;
 
 export default {
   id: "dateStamp",
   name: "Date Received",
   tags: ["date", "office"],
   build: () => [
-    { type: "rect", w: 470, h: 250, rx: 6, cx: C, cy: C, strokeWidth: 8, name: "Border" },
-    { type: "text", text: "RECEIVED", fontSize: 52, cx: C, cy: C - 70, w: 430, charSpacing: 120 },
-    { type: "line", x1: C - 200, y1: C - 26, x2: C + 200, y2: C - 26, strokeWidth: 3 },
-    {
-      type: "text",
-      text: "24 OCT 2026",
+    box(470, 250, 8, ink, "Border", { rx: 6 }),
+    txt("RECEIVED", 42, F.black, ink, C - 68, { fontWeight: "400", charSpacing: 40, w: 400, name: "Header" }),
+    rule(C - 24, 190, ink, 3, "Rule"),
+    txt("24 OCT 2026", 36, F.mono, ink, C + 16, {
       field: "date",
       dateFormat: "DD MMM YYYY",
-      fontSize: 40,
-      fontFamily: "Roboto Mono",
-      cx: C,
-      cy: C + 10,
-      w: 430,
+      fontWeight: "700",
+      charSpacing: 0,
+      w: 400,
       name: "Date",
-    },
-    {
-      type: "text",
-      text: "00:00",
+    }),
+    txt("00:00", 22, F.mono, ink, C + 72, {
       field: "time",
-      fontSize: 26,
-      fontFamily: "Roboto Mono",
       fontWeight: "400",
-      cx: C,
-      cy: C + 72,
-      w: 430,
+      charSpacing: 0,
+      w: 400,
       name: "Time",
-    },
+    }),
   ],
 };

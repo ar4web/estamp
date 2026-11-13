@@ -37,7 +37,7 @@ const SECTIONS = [
 ];
 
 const CORNERS = [
-  { id: "square", label: "Square", hint: "Sharp", icon: Square },
+  { id: "square", label: "Square", hint: "2px", icon: Square },
   { id: "soft", label: "Soft", hint: "8px", icon: Squircle },
   { id: "round", label: "Round", hint: "14px", icon: CircleIcon },
 ];
@@ -60,12 +60,9 @@ const SHORTCUTS = [
 
 const ACCENTS = [
   { name: "Brass", hex: "#c4a574" },
-  { name: "Copper", hex: "#c48a62" },
-  { name: "Gold", hex: "#d4b45a" },
+  { name: "Ink", hex: "#4a6a9a" },
   { name: "Olive", hex: "#8a9a6e" },
   { name: "Clay", hex: "#c46a5a" },
-  { name: "Ink", hex: "#4a6a9a" },
-  { name: "Stone", hex: "#8a8680" },
 ];
 
 const OUTLINES = ["#c4a574", "#c45c5c", "#6e9a72", "#4a6a9a", "#ece7dc", "#2a261f"];
@@ -358,13 +355,39 @@ export default function SettingsPanel() {
               />
             </Card>
 
+            <Card title="Tooltips" hint="Hover labels">
+              <div className="grid grid-cols-4 gap-1.5">
+                {[
+                  { id: "top", label: "Top" },
+                  { id: "right", label: "Right" },
+                  { id: "bottom", label: "Bottom" },
+                  { id: "left", label: "Left" },
+                ].map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    className={`btn text-[10px] ${st.tooltipPos === p.id ? "btn-on" : ""}`}
+                    aria-pressed={st.tooltipPos === p.id}
+                    onClick={() => st.setTooltipPos(p.id)}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+            </Card>
+
             <Card title="Type" hint="TTF · OTF · WOFF">
               <p className="text-[11px] leading-relaxed" style={{ color: "var(--text-mute)" }}>
                 Brand fonts stay in this browser and restore on reload.
               </p>
-              <button type="button" className="btn w-full" onClick={() => fontRef.current?.click()}>
-                <Upload size={13} aria-hidden /> Upload font
-              </button>
+              <div className="grid grid-cols-2 gap-1.5">
+                <button type="button" className="btn" onClick={() => fontRef.current?.click()}>
+                  <Upload size={13} aria-hidden /> Upload
+                </button>
+                <button type="button" className="btn" onClick={reloadFonts}>
+                  Reload
+                </button>
+              </div>
               <input ref={fontRef} type="file" accept=".ttf,.otf,.woff,.woff2" className="hidden" onChange={onFont} />
             </Card>
           </>

@@ -1,32 +1,27 @@
-const C = 310;
+import { C, INK, F, ring, arc, txt } from "./shared.js";
+
+const ink = INK.blue;
 
 export default {
   id: "starSeal",
   name: "Star Seal",
   tags: ["star", "arc"],
   build: () => [
-    { type: "circle", r: 254, cx: C, cy: C, strokeWidth: 5 },
-    { type: "star", outer: 190, inner: 80, points: 5, cx: C, cy: C + 6, strokeWidth: 6, name: "Star outline" },
+    ring(254, 5, ink, "Outer ring"),
     {
-      type: "arc",
-      text: "OFFICIAL SEAL",
-      radius: 220,
-      position: "top",
-      fontSize: 32,
-      letterSpacing: 5,
+      type: "star",
+      outer: 176,
+      inner: 74,
+      points: 5,
       cx: C,
-      cy: C,
+      cy: C + 4,
+      strokeWidth: 6,
+      stroke: ink,
+      fill: "transparent",
+      name: "Star outline",
     },
-    {
-      type: "arc",
-      text: "AUTHENTIC",
-      radius: 220,
-      position: "bottom",
-      fontSize: 26,
-      letterSpacing: 6,
-      cx: C,
-      cy: C,
-    },
-    { type: "text", text: "2024", fontSize: 40, fontFamily: "Oswald", cx: C, cy: C + 24, w: 220 },
+    arc("OFFICIAL SEAL", 218, "top", 28, F.stamp, ink, { letterSpacing: 6, name: "Top arc" }),
+    arc("AUTHENTIC", 218, "bottom", 22, F.stamp, ink, { letterSpacing: 8, name: "Bottom arc" }),
+    txt("2024", 34, F.classic, ink, C + 10, { fontWeight: "700", charSpacing: 20, w: 180, name: "Year" }),
   ],
 };

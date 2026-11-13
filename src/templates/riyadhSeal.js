@@ -1,5 +1,6 @@
-const C = 310;
-const INK = "#006c35";
+import { C, INK, F, ring, arc, txt } from "./shared.js";
+
+const ink = INK.green;
 
 export default {
   id: "riyadhSeal",
@@ -8,61 +9,22 @@ export default {
   order: 40,
   tags: ["arabic", "riyadh", "ksa"],
   build: () => [
-    { type: "circle", r: 250, cx: C, cy: C, stroke: INK, strokeWidth: 8, name: "Outer ring" },
-    { type: "circle", r: 228, cx: C, cy: C, stroke: INK, strokeWidth: 2.5, name: "Inner ring" },
-    {
-      type: "arc",
-      text: "المملكة العربية السعودية",
-      radius: 198,
-      position: "top",
-      fontSize: 28,
-      fontFamily: "Cairo",
-      fontWeight: "700",
-      fill: INK,
+    ring(250, 8, ink, "Outer ring"),
+    ring(226, 2.5, ink, "Inner ring"),
+    arc("المملكة العربية السعودية", 194, "top", 24, F.arabic, ink, {
       letterSpacing: 1,
-      cx: C,
-      cy: C,
       name: "KSA arc",
-    },
-    {
-      type: "arc",
-      text: "KINGDOM OF SAUDI ARABIA",
-      radius: 198,
-      position: "bottom",
-      fontSize: 16,
-      fontFamily: "Oswald",
-      fontWeight: "700",
-      fill: INK,
+    }),
+    arc("KINGDOM OF SAUDI ARABIA", 194, "bottom", 14, F.stamp, ink, {
       letterSpacing: 2,
-      cx: C,
-      cy: C,
       name: "KSA EN",
-    },
-    {
-      type: "text",
-      text: "الرياض",
-      fontSize: 52,
-      fontFamily: "Amiri",
+    }),
+    txt("الرياض", 48, F.naskh, ink, C - 12, {
       fontWeight: "700",
-      fill: INK,
       charSpacing: 0,
-      cx: C,
-      cy: C - 18,
-      w: 360,
+      w: 300,
       name: "Riyadh AR",
-    },
-    {
-      type: "text",
-      text: "RIYADH",
-      fontSize: 22,
-      fontFamily: "Oswald",
-      fontWeight: "700",
-      fill: INK,
-      charSpacing: 80,
-      cx: C,
-      cy: C + 42,
-      w: 320,
-      name: "Riyadh EN",
-    },
+    }),
+    txt("RIYADH", 18, F.stamp, ink, C + 44, { charSpacing: 80, w: 280, name: "Riyadh EN" }),
   ],
 };

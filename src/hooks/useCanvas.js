@@ -60,7 +60,7 @@ export default function useCanvas(elRef) {
         await store.restoreAutosave();
         store.refreshFields();
       } else if (!designs.length) {
-        loadTemplate("classicRound", { silent: true });
+        await loadTemplate("classicRound", { silent: true });
         store.toast(
           prefs.visited ? "Starter template loaded" : "Welcome to Stampcraft",
           "success"
@@ -68,7 +68,7 @@ export default function useCanvas(elRef) {
         store.setPulseTemplates(true);
         setTimeout(() => useStampStore.getState().setPulseTemplates(false), 9000);
       } else {
-        loadTemplate("classicRound", { silent: true });
+        await loadTemplate("classicRound", { silent: true });
       }
       setPrefs({ visited: true });
       // Re-apply the saved stamp surface colour (templates/JSON may reset it).

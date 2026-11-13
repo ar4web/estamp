@@ -50,8 +50,10 @@
   --lh-body: 1.5;
 
   --ctl-h: 32px;
-  --bar-h: 44px;
-  --rail-w: 52px;
+  --bar-h: 40px;
+  --rail-w: 48px;
+  --drawer-w: 300px;
+  --insp-w: 320px;
 
   color-scheme: dark;
 }
@@ -279,7 +281,7 @@ html.light .btn-on {
 
 .icon-grid {
   display: grid;
-  grid-template-columns: repeat(4, var(--ctl-h));
+  grid-template-columns: repeat(4, minmax(var(--ctl-h), 1fr));
   gap: 4px;
 }
 .icon-grid > * {
@@ -692,8 +694,8 @@ html.light.a11y-high-contrast {
 }
 html.a11y-large-controls {
   --ctl-h: 40px;
-  --bar-h: 52px;
-  --rail-w: 60px;
+  --bar-h: 48px;
+  --rail-w: 56px;
 }
 html.a11y-large-controls body { font-size: 14px; }
 html.a11y-always-focus :focus {
@@ -844,6 +846,7 @@ html.light .btn-ok { color: var(--ok); }
   font-weight: 600;
   line-height: 1;
   color: var(--text);
+  font-synthesis: none;
 }
 
 .font-tile-name {

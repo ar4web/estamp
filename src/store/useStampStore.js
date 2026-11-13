@@ -5,6 +5,7 @@ import {
   deserialize,
   rebuildArc,
   serialize,
+  styleSelection,
   thumbnail,
 } from "../utils/canvas";
 import * as storage from "../utils/storage";
@@ -74,8 +75,7 @@ export const useStampStore = create((set, get) => ({
     storage.setPrefs({ selectionColor: color });
     set({ selectionColor: color });
     if (c) {
-      c.selectionColor = color;
-      c.selectionBorderColor = color;
+      styleSelection(c, color);
       c.requestRenderAll();
     }
   },
@@ -262,15 +262,24 @@ export const useStampStore = create((set, get) => ({
   openModal: (modal) => set({ modal }),
   closeModal: () => set({ modal: null }),
 
-  /* opens (and scrolls to) a section of the right sidebar */
+  inspectorTab: "props",
+  setInspectorTab: (tab) => {
+    const inspectorTab = ["props", "layers", "export"].includes(tab) ? tab : "props";
+    set({ inspectorTab });
+  },
   focusSection: null,
   revealSection: (id) => {
     if (id === "settings" || id === "options") {
       set({ settingsOpen: true });
       return;
     }
-    if (!get().rightOpen) set({ rightOpen: true });
-    set({ focusSection: id });
+    const tab =
+      id === "layers" ? "layers" : id === "export" ? "export" : "props";
+    set({
+      rightOpen: true,
+      inspectorTab: tab,
+      focusSection: id,
+    });
     setTimeout(() => set({ focusSection: null }), 600);
   },
 

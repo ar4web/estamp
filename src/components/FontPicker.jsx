@@ -1,4 +1,5 @@
-import { FONT_SETS } from "../utils/fonts";
+import { useEffect } from "react";
+import { FONT_SETS, loadFont } from "../utils/fonts";
 
 const SAMPLE = {
   Latin: "Aa",
@@ -18,6 +19,10 @@ export function fontSample(family) {
 }
 
 export function FontTile({ family, selected, onSelect }) {
+  useEffect(() => {
+    loadFont(family);
+  }, [family]);
+
   return (
     <button
       type="button"
@@ -27,7 +32,7 @@ export function FontTile({ family, selected, onSelect }) {
       title={family}
       onClick={() => onSelect(family)}
     >
-      <span className="font-tile-sample" style={{ fontFamily: family }} aria-hidden>
+      <span className="font-tile-sample" style={{ fontFamily: `"${family}", sans-serif` }} aria-hidden>
         {fontSample(family)}
       </span>
       <span className="font-tile-name">{family}</span>

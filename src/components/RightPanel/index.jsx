@@ -1,19 +1,21 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect } from "react";
 import {
-  ChevronRight,
   Crosshair,
+  Download,
   Group as GroupIcon,
   Layers,
   MousePointerClick,
+  Save,
   Sliders,
+  Trash2,
   Ungroup,
-  Download,
 } from "lucide-react";
 import useStampStore from "../../store/useStampStore";
 import DraggablePanel from "../DraggablePanel";
+import Tooltip from "../Tooltip";
 import { Empty } from "../ui";
 import { selectionKind } from "../../utils/canvas";
-import { groupSelection, ungroupSelection } from "../../utils/actions";
+import { deleteSelection, groupSelection, ungroupSelection } from "../../utils/actions";
 import LayersPanel from "./LayersPanel";
 import TextProperties from "./TextProperties";
 import ShapeProperties from "./ShapeProperties";
@@ -21,43 +23,19 @@ import ImageProperties from "./ImageProperties";
 import TransformBlock from "./TransformBlock";
 import ExportPanel from "./ExportPanel";
 
-function Section({ id, label, icon: Icon, openIds, setOpenIds, children, count, innerRef }) {
-  const isOpen = openIds.includes(id);
-  return (
-    <section className="card" ref={innerRef}>
-      <button
-        type="button"
-        onClick={() =>
-          setOpenIds((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]))
-        }
-        aria-expanded={isOpen}
-        className={`section-head flex w-full items-center gap-1.5 px-2.5 py-1.5 text-left ${
-          isOpen ? "section-head-open" : ""
-        }`}
-      >
-        <Icon size={13} style={{ color: "var(--accent)" }} />
-        <span className="flex-1 truncate text-[10px] font-semibold uppercase tracking-[0.06em]">{label}</span>
-        {count != null && (
-          <span className="text-[10px] tabular-nums font-medium" style={{ color: "var(--text-dim)" }}>
-            {count}
-          </span>
-        )}
-        <ChevronRight
-          size={13}
-          style={{
-            color: "var(--text-dim)",
-            transform: isOpen ? "rotate(90deg)" : "none",
-            transition: "transform .18s ease",
-          }}
-        />
-      </button>
-      {isOpen && (
-        <div className="border-t p-2.5" style={{ borderColor: "var(--border-soft)" }}>
-          {children}
-        </div>
-      )}
-    </section>
-  );
+const TABS = [
+  { id: "props", label: "Properties" },
+  { id: "layers", label: "Layers" },
+  { id: "export", label: "Export" },
+];
+
+function kindLabel(kind) {
+  if (kind === "text" || kind === "arc") return "Text";
+  if (kind === "shape") return "Shape";
+  if (kind === "image" || kind === "textured") return "Image";
+  if (kind === "group") return "Group";
+  if (kind === "multi") return "Selection";
+  return "Properties";
 }
 
 export default function RightPanel() {
@@ -67,123 +45,127 @@ export default function RightPanel() {
   const selVersion = useStampStore((s) => s.selVersion);
   const canvas = useStampStore((s) => s.canvas);
   const layerVersion = useStampStore((s) => s.layerVersion);
-  const [openIds, setOpenIds] = useState(["layers", "props", "transform", "export"]);
+  const inspectorTab = useStampStore((s) => s.inspectorTab);
+  const setInspectorTab = useStampStore((s) => s.setInspectorTab);
   const focusSection = useStampStore((s) => s.focusSection);
-  const sectionRefs = useRef({});
+  const saveCurrent = useStampStore((s) => s.saveCurrent);
   const kind = selectionKind(selected);
 
-  // External requests (Ctrl+K, toolbar) open and scroll to a section.
   useEffect(() => {
     if (!focusSection) return;
-    const target =
-      focusSection === "transform" && (kind === "text" || kind === "arc")
-        ? "props"
-        : focusSection;
-    setOpenIds((p) => (p.includes(target) ? p : [...p, target]));
-    const node = sectionRefs.current[target];
-    if (node) node.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, [focusSection, kind]);
-  void selVersion;
-  void layerVersion;
+    if (focusSection === "layers") setInspectorTab("layers");
+    else if (focusSection === "export") setInspectorTab("export");
+    else setInspectorTab("props");
+  }, [focusSection, setInspectorTab]);
 
+  useEffect(() => {
+    if (!selected) return;
+    if (inspectorTab === "layers") return;
+    setInspectorTab("props");
+  }, [selVersion]);
+
+  void layerVersion;
   const layerCount = canvas ? canvas.getObjects().length : 0;
+
+  const HeadBtn = ({ label, hint, onClick, disabled, danger, children }) => (
+    <Tooltip label={label} hint={hint} side="bottom" delay={120}>
+      <button
+        type="button"
+        aria-label={label}
+        onClick={onClick}
+        disabled={disabled}
+        className={`btn btn-icon h-7 w-7 p-0 ${danger ? "btn-danger" : ""}`}
+      >
+        {children}
+      </button>
+    </Tooltip>
+  );
+
+  const properties = !selected ? (
+    <Empty
+      icon={MousePointerClick}
+      title="Nothing selected"
+      hint="Pick a layer or click it on the canvas."
+    />
+  ) : kind === "multi" ? (
+    <div>
+      <p className="mb-2 text-[10px]" style={{ color: "var(--text-dim)" }}>
+        {selected.size()} layers selected
+      </p>
+      <div className="flex gap-1.5">
+        <button type="button" className="btn flex-1" onClick={groupSelection}>
+          <GroupIcon size={15} /> Group
+        </button>
+        <button type="button" className="btn flex-1" onClick={ungroupSelection}>
+          <Ungroup size={15} /> Ungroup
+        </button>
+      </div>
+    </div>
+  ) : (
+    <div className="flex flex-col gap-3">
+      {(kind === "text" || kind === "arc") && <TextProperties obj={selected} kind={kind} />}
+      {kind === "shape" && <ShapeProperties obj={selected} />}
+      {(kind === "image" || kind === "textured") && <ImageProperties obj={selected} />}
+      {kind === "group" && (
+        <button type="button" className="btn w-full" onClick={ungroupSelection}>
+          <Ungroup size={15} /> Ungroup layers
+        </button>
+      )}
+      <div>
+        <div className="label mb-1.5 flex items-center gap-1.5">
+          <Crosshair size={11} /> Transform
+        </div>
+        <TransformBlock obj={selected} />
+      </div>
+    </div>
+  );
 
   return (
     <DraggablePanel
-      title="Layers & properties"
+      title="Inspector"
       icon={Sliders}
-      width={300}
+      width={320}
       side="right"
       open={rightOpen}
       onClose={toggleRight}
+      pad={false}
+      actions={
+        <>
+          <HeadBtn label="Delete" hint="Del" danger onClick={deleteSelection} disabled={!selected}>
+            <Trash2 size={14} />
+          </HeadBtn>
+          <HeadBtn label="Save" hint="Ctrl+S" onClick={() => saveCurrent()}>
+            <Save size={14} />
+          </HeadBtn>
+        </>
+      }
     >
-      <div className="flex flex-col gap-2">
-        <Section
-          innerRef={(el) => (sectionRefs.current.layers = el)}
-          id="layers"
-          label="Layers"
-          icon={Layers}
-          count={layerCount}
-          openIds={openIds}
-          setOpenIds={setOpenIds}
-        >
-          <LayersPanel />
-        </Section>
-
-        <Section
-          id="props"
-          innerRef={(el) => (sectionRefs.current.props = el)}
-          label={
-            kind === "text" || kind === "arc"
-              ? "Text properties"
-              : kind
-                ? `${kind} properties`
-                : "Properties"
-          }
-          icon={Sliders}
-          openIds={openIds}
-          setOpenIds={setOpenIds}
-        >
-          {!selected ? (
-            <Empty
-              icon={MousePointerClick}
-              title="Nothing selected"
-              hint="Pick a layer above or click it on the canvas."
-            />
-          ) : kind === "multi" ? (
-            <div>
-              <p className="mb-2 text-[10px]" style={{ color: "var(--text-dim)" }}>
-                {selected.size()} layers selected
-              </p>
-              <div className="flex gap-1.5">
-                <button type="button" className="btn flex-1" onClick={groupSelection}>
-                  <GroupIcon size={15} /> Group
-                </button>
-                <button type="button" className="btn flex-1" onClick={ungroupSelection}>
-                  <Ungroup size={15} /> Ungroup
-                </button>
-              </div>
-            </div>
-          ) : (
-            <>
-              {(kind === "text" || kind === "arc") && (
-                <TextProperties obj={selected} kind={kind} />
-              )}
-              {kind === "shape" && <ShapeProperties obj={selected} />}
-              {(kind === "image" || kind === "textured") && <ImageProperties obj={selected} />}
-              {kind === "group" && (
-                <button type="button" className="btn w-full" onClick={ungroupSelection}>
-                  <Ungroup size={15} /> Ungroup layers
-                </button>
-              )}
-            </>
-          )}
-        </Section>
-
-        {selected && kind !== "text" && kind !== "arc" && (
-          <Section
-            id="transform"
-            innerRef={(el) => (sectionRefs.current.transform = el)}
-            label="Transform"
-            icon={Crosshair}
-            openIds={openIds}
-            setOpenIds={setOpenIds}
-          >
-            <TransformBlock obj={selected} />
-          </Section>
-        )}
-
-        <Section
-          id="export"
-          innerRef={(el) => (sectionRefs.current.export = el)}
-          label="Export & Download"
-          icon={Download}
-          openIds={openIds}
-          setOpenIds={setOpenIds}
-        >
-          <ExportPanel />
-        </Section>
-
+      <div className="insp-tabs" role="tablist" aria-label="Inspector">
+        {TABS.map((t) => {
+          const on = inspectorTab === t.id;
+          return (
+            <button
+              key={t.id}
+              type="button"
+              role="tab"
+              aria-selected={on}
+              className={`insp-tab ${on ? "is-on" : ""}`}
+              onClick={() => setInspectorTab(t.id)}
+            >
+              {t.label}
+              {t.id === "layers" && layerCount > 0 ? (
+                <span className="tabular-nums" style={{ color: on ? "var(--accent)" : "var(--text-mute)" }}>
+                  {layerCount}
+                </span>
+              ) : null}
+            </button>
+          );
+        })}
+      </div>
+      <div className="scroll-thin min-h-0 flex-1 overflow-y-auto p-2.5">
+        {inspectorTab === "props" && properties}
+        {inspectorTab === "layers" && <LayersPanel />}
+        {inspectorTab === "export" && <ExportPanel />}
       </div>
     </DraggablePanel>
   );

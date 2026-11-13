@@ -1,11 +1,13 @@
-const C = 310;
+import { C, INK, F, box, txt } from "./shared.js";
+
+const ink = INK.black;
 
 export default {
   id: "minimalLine",
   name: "Minimal Line",
   tags: ["minimal", "thin"],
   build: () => [
-    { type: "rect", w: 460, h: 130, rx: 2, cx: C, cy: C, strokeWidth: 1.5 },
-    { type: "text", text: "REVIEWED", fontSize: 44, fontFamily: "Inter", fontWeight: "400", charSpacing: 320, cx: C, cy: C, w: 430 },
+    box(460, 120, 1.5, ink, "Border", { rx: 2 }),
+    txt("REVIEWED", 36, F.classic, ink, C, { fontWeight: "400", charSpacing: 180, w: 400, name: "Word" }),
   ],
 };

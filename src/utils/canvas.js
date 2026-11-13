@@ -17,6 +17,8 @@ import { distressCanvasElement, stampifyCanvasElement } from "./texture";
 import { isRTL, toVisualClusters } from "./arabic";
 import { fieldText } from "./fields";
 import { printPixels, slugName, withCmykSafe } from "./print";
+import { applyObjectControls, wireShiftSnap } from "./rotate";
+import { ensureFonts, fabricFamily, plainFamily } from "./fonts";
 
 export const CANVAS_SIZE = 620;
 export const SNAP_TOLERANCE = 10;
@@ -81,7 +83,8 @@ export function initCanvas(el, prefs = {}) {
     selectionLineWidth: prefs.selectionBorderWidth ?? 1,
   });
   canvas.setDimensions({ width: CANVAS_SIZE, height: CANVAS_SIZE });
-  enableMouseRotate(canvas, prefs.selectionColor || "#8d7a5a");
+  enableMouseRotate(canvas, prefs.selectionColor || "#c4a574");
+  wireShiftSnap(canvas);
 
   const guides = { v: false, h: false };
 
@@ -143,43 +146,26 @@ export function initCanvas(el, prefs = {}) {
 }
 
 function enableMouseRotate(canvas, accent) {
-  const paint = (obj) => {
-    if (!obj || obj.lockMovementX === undefined && !obj.type) return;
-    obj.set({
-      lockRotation: false,
-      centeredRotation: true,
-      transparentCorners: false,
-      cornerStyle: "rect",
-      cornerSize: 8,
-      touchCornerSize: 22,
-      padding: 10,
-      borderColor: accent,
-      cornerColor: accent,
-      cornerStrokeColor: "#1a1b1c",
-      borderScaleFactor: 1,
-    });
-    if (obj.controls?.mtr) {
-      obj.controls.mtr.offsetY = -36;
-      obj.controls.mtr.withConnection = true;
-      obj.controls.mtr.sizeX = 16;
-      obj.controls.mtr.sizeY = 16;
-      obj.controls.mtr.cursorStyle = "crosshair";
-    }
-  };
+  const paint = (obj) => applyObjectControls(obj, accent);
   const paintAll = (list) => (list || []).forEach(paint);
+  const paintSel = (e) => {
+    paint(canvas.getActiveObject());
+    paintAll(e.selected);
+  };
   canvas.getObjects().forEach(paint);
   if (canvas.__stampRotateWired) return;
   canvas.__stampRotateWired = true;
   canvas.on("object:added", (e) => paint(e.target));
-  canvas.on("selection:created", (e) => paintAll(e.selected));
-  canvas.on("selection:updated", (e) => paintAll(e.selected));
+  canvas.on("selection:created", paintSel);
+  canvas.on("selection:updated", paintSel);
 }
 
-export function styleSelection(canvas, accent = "#8d7a5a") {
-  canvas.selectionColor = "rgba(141,122,90,0.16)";
+export function styleSelection(canvas, accent = "#c4a574") {
+  canvas.selectionColor = "rgba(196,165,116,0.16)";
   canvas.selectionBorderColor = accent;
   canvas.selectionLineWidth = 1;
   enableMouseRotate(canvas, accent);
+  wireShiftSnap(canvas);
 }
 
 /* ------------------------------------------------------------------ */
@@ -207,7 +193,7 @@ export function makeArcText(options = {}) {
     (ch) =>
       new FabricText(ch === " " ? "\u00A0" : ch, {
         fontSize: o.fontSize,
-        fontFamily: o.fontFamily,
+        fontFamily: fabricFamily(o.fontFamily),
         fontWeight: o.fontWeight,
         fill: o.fill,
         originX: "center",
@@ -256,7 +242,7 @@ export function makeArcText(options = {}) {
     text: o.text,
     radius,
     fontSize: o.fontSize,
-    fontFamily: o.fontFamily,
+    fontFamily: plainFamily(o.fontFamily),
     fontWeight: o.fontWeight,
     fill: o.fill,
     letterSpacing: o.letterSpacing,
@@ -392,7 +378,7 @@ export function createSpecObject(spec) {
         strokeWidth: s.strokeWidth ?? 0,
         width: s.w ?? 340,
         fontSize: s.fontSize ?? 36,
-        fontFamily: s.fontFamily ?? "Oswald",
+        fontFamily: fabricFamily(s.fontFamily ?? "Oswald"),
         fontWeight: s.fontWeight ?? "700",
         fontStyle: s.fontStyle ?? "normal",
         charSpacing: rtl ? 0 : s.charSpacing ?? 60,
@@ -462,11 +448,19 @@ export function buildShapeWithDoubleBorder(spec, double, gap = 8) {
 /* templates                                                           */
 /* ------------------------------------------------------------------ */
 
+export function templateSpecs(template) {
+  return typeof template.build === "function" ? template.build() : template.objects || [];
+}
+
+export function templateFonts(template) {
+  return templateSpecs(template)
+    .map((s) => s.fontFamily)
+    .filter(Boolean);
+}
+
 export function applyTemplate(canvas, template) {
   canvas.remove(...canvas.getObjects());
-  const specs =
-    typeof template.build === "function" ? template.build() : template.objects;
-  specs.forEach((s) => canvas.add(createSpecObject(s)));
+  templateSpecs(template).forEach((s) => canvas.add(createSpecObject(s)));
   canvas.discardActiveObject();
   canvas.requestRenderAll();
   return canvas;
@@ -475,13 +469,13 @@ export function applyTemplate(canvas, template) {
 /** Off-screen preview data URL for the template gallery. */
 export async function renderTemplateThumb(template, size = 150, ink = "#111") {
   const { StaticCanvas } = await import("fabric");
+  const specs = templateSpecs(template);
+  await ensureFonts(templateFonts(template));
   const sc = new StaticCanvas(undefined, {
     width: size,
     height: size,
     backgroundColor: undefined,
   });
-  const specs =
-    typeof template.build === "function" ? template.build() : template.objects;
   specs.forEach((s) => sc.add(createSpecObject(s)));
   const scale = size / CANVAS_SIZE;
   sc.setZoom(scale);

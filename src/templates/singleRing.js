@@ -1,5 +1,6 @@
-const C = 310;
-const INK = "#003399";
+import { C, INK, F, ring, arc, txt, star } from "./shared.js";
+
+const ink = INK.blue;
 
 export default {
   id: "singleRing",
@@ -8,49 +9,11 @@ export default {
   order: 1,
   tags: ["round", "single ring"],
   build: () => [
-    { type: "circle", r: 248, cx: C, cy: C, strokeWidth: 10, stroke: INK, name: "Ring" },
-    {
-      type: "arc",
-      text: "COMPANY NAME",
-      radius: 198,
-      position: "top",
-      fontSize: 38,
-      fontFamily: "Oswald",
-      fontWeight: "700",
-      fill: INK,
-      letterSpacing: 3,
-      cx: C,
-      cy: C,
-      name: "Top arc",
-    },
-    {
-      type: "arc",
-      text: "EST. 2024",
-      radius: 198,
-      position: "bottom",
-      fontSize: 26,
-      fontFamily: "Oswald",
-      fontWeight: "700",
-      fill: INK,
-      letterSpacing: 5,
-      cx: C,
-      cy: C,
-      name: "Bottom arc",
-    },
-    { type: "star", outer: 14, inner: 6, points: 5, cx: C - 158, cy: C, fill: INK, stroke: INK, strokeWidth: 0, name: "Star left" },
-    { type: "star", outer: 14, inner: 6, points: 5, cx: C + 158, cy: C, fill: INK, stroke: INK, strokeWidth: 0, name: "Star right" },
-    {
-      type: "text",
-      text: "APPROVED",
-      fontSize: 50,
-      fontFamily: "Oswald",
-      fontWeight: "700",
-      fill: INK,
-      charSpacing: 60,
-      cx: C,
-      cy: C,
-      w: 380,
-      name: "Centre",
-    },
+    ring(248, 10, ink, "Ring"),
+    arc("COMPANY NAME", 196, "top", 36, F.stamp, ink, { letterSpacing: 3, name: "Top arc" }),
+    arc("EST. 2024", 196, "bottom", 24, F.stamp, ink, { letterSpacing: 6, name: "Bottom arc" }),
+    star(C - 156, C, 12, 5, ink, "Star left"),
+    star(C + 156, C, 12, 5, ink, "Star right"),
+    txt("APPROVED", 46, F.stamp, ink, C, { charSpacing: 50, w: 340, name: "Centre" }),
   ],
 };

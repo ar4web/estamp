@@ -1,5 +1,3 @@
-// Dynamic Google Font loader with multi-script support.
-
 export const FONT_SETS = [
   {
     script: "Latin",
@@ -26,44 +24,113 @@ export const FONT_SETS = [
   { script: "Thai", fonts: ["Sarabun", "Kanit", "Prompt"] },
 ];
 
-const loaded = new Set(["Inter", "Oswald", "Playfair Display", "Roboto Mono"]);
+const FONT_AXES = {
+  Inter: "wght@100..900",
+  Oswald: "wght@200..700",
+  "Playfair Display": "wght@400..900",
+  "Roboto Mono": "wght@100..700",
+  Montserrat: "wght@100..900",
+  "Bebas Neue": "wght@400",
+  "Archivo Black": "wght@400",
+  Cinzel: "wght@400..900",
+  Merriweather: "wght@300;400;700;900",
+  "Courier Prime": "wght@400;700",
+  Roboto: "wght@100..900",
+  "PT Sans": "wght@400;700",
+  Ubuntu: "wght@300..700",
+  Cairo: "wght@200..1000",
+  Amiri: "wght@400;700",
+  Tajawal: "wght@200..900",
+  Changa: "wght@200..800",
+  Almarai: "wght@300..800",
+  "Reem Kufi": "wght@400..700",
+  "Noto Sans SC": "wght@100..900",
+  "Noto Serif JP": "wght@200..900",
+  "Noto Sans KR": "wght@100..900",
+  "Noto Sans Devanagari": "wght@100..900",
+  Hind: "wght@300..700",
+  "Tiro Devanagari Hindi": "wght@400",
+  Sarabun: "wght@100..800",
+  Kanit: "wght@100..900",
+  Prompt: "wght@100..900",
+};
+
+const loaded = new Set();
+const loading = new Map();
+
+function fontHref(family) {
+  const name = family.replace(/ /g, "+");
+  const axis = FONT_AXES[family] || "wght@400;700";
+  return `https://fonts.googleapis.com/css2?family=${name}:${axis}&display=swap`;
+}
 
 function injectLink(family) {
   const id = "gf-" + family.replace(/\s+/g, "-").toLowerCase();
-  if (document.getElementById(id)) return;
-  const link = document.createElement("link");
-  link.id = id;
-  link.rel = "stylesheet";
-  // Request the full weight ramp so the thickness control has real options.
-  // Google silently serves the nearest available weights per family.
-  link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(
-    family
-  ).replace(/%20/g, "+")}:wght@300;400;500;600;700;800;900&display=swap`;
-  document.head.appendChild(link);
+  const existing = document.getElementById(id);
+  if (existing) {
+    if (existing.dataset.loaded === "1") return Promise.resolve();
+    return new Promise((resolve) => {
+      existing.addEventListener("load", () => resolve(), { once: true });
+      existing.addEventListener("error", () => resolve(), { once: true });
+      setTimeout(resolve, 1500);
+    });
+  }
+  return new Promise((resolve) => {
+    const link = document.createElement("link");
+    link.id = id;
+    link.rel = "stylesheet";
+    link.href = fontHref(family);
+    const done = () => {
+      link.dataset.loaded = "1";
+      resolve();
+    };
+    link.onload = done;
+    link.onerror = done;
+    document.head.appendChild(link);
+    setTimeout(done, 2500);
+  });
 }
 
-/** Loads a Google font and resolves once glyphs are really available. */
 export async function loadFont(family) {
   if (!family) return false;
-  try {
-    injectLink(family);
-    if (document.fonts && document.fonts.load) {
-      await Promise.all(
-        ["300", "400", "500", "700", "900"].map((w) =>
-          document.fonts.load(`${w} 24px "${family}"`)
-        )
-      );
-      await document.fonts.ready;
+  if (loaded.has(family)) return true;
+  if (loading.has(family)) return loading.get(family);
+  const job = (async () => {
+    try {
+      await injectLink(family);
+      if (document.fonts?.load) {
+        await Promise.all(
+          ["400", "700", "900"].map((w) =>
+            document.fonts.load(`${w} 24px "${family}"`).catch(() => null)
+          )
+        );
+      }
+      if (document.fonts?.ready) {
+        await Promise.race([
+          document.fonts.ready,
+          new Promise((r) => setTimeout(r, 1200)),
+        ]);
+      }
+      loaded.add(family);
+      return true;
+    } catch (e) {
+      console.warn("font load failed", family, e);
+      return false;
+    } finally {
+      loading.delete(family);
     }
-    loaded.add(family);
-    return true;
-  } catch (e) {
-    console.warn("font load failed", family, e);
-    return false;
-  }
+  })();
+  loading.set(family, job);
+  return job;
 }
 
-/** Picks a stamp font from the typed script. No language picker. */
+export async function ensureFonts(families) {
+  const list = [...new Set((families || []).filter(Boolean))];
+  if (!list.length) return true;
+  await Promise.all(list.map(loadFont));
+  return true;
+}
+
 export function fontForScript(text) {
   const t = text || "";
   if (/[\u0600-\u06FF]/.test(t)) return "Cairo";
@@ -74,18 +141,29 @@ export function fontForScript(text) {
   return "Oswald";
 }
 
-/** Preloads the default working set before the canvas renders text. */
+const DEFAULTS = [
+  "Inter",
+  "Oswald",
+  "Playfair Display",
+  "Roboto Mono",
+  "Cairo",
+  "Amiri",
+  "Montserrat",
+  "Bebas Neue",
+  "Cinzel",
+  "Archivo Black",
+];
+
 export async function preloadDefaults() {
-  await Promise.all(
-    ["Inter", "Oswald", "Playfair Display", "Roboto Mono"].map(loadFont)
-  );
-  if (document.fonts) await document.fonts.ready;
+  await Promise.all(DEFAULTS.map(loadFont));
+  if (document.fonts) {
+    await Promise.race([
+      document.fonts.ready,
+      new Promise((r) => setTimeout(r, 2000)),
+    ]);
+  }
   return true;
 }
-
-/* ------------------------------------------------------------------ */
-/* custom user fonts                                                   */
-/* ------------------------------------------------------------------ */
 
 const CUSTOM_KEY = "stamp_custom_fonts";
 const customFonts = [];
@@ -98,7 +176,6 @@ const readCustom = () => {
   }
 };
 
-/** Registers a font from a data URL via the FontFace API. */
 async function register(family, dataUrl) {
   const face = new FontFace(family, `url(${dataUrl})`);
   await face.load();
@@ -108,7 +185,6 @@ async function register(family, dataUrl) {
   return family;
 }
 
-/** Imports a .ttf/.otf/.woff/.woff2 file the user picked. */
 export async function importFontFile(file) {
   if (!/\.(ttf|otf|woff2?)$/i.test(file.name))
     throw new Error("Use a TTF, OTF, WOFF or WOFF2 file");
@@ -124,18 +200,16 @@ export async function importFontFile(file) {
   const family = file.name.replace(/\.(ttf|otf|woff2?)$/i, "").slice(0, 40);
   await register(family, dataUrl);
 
-  // Persist so the font survives a reload (fonts are small enough to store).
   try {
     const all = readCustom().filter((f) => f.family !== family);
     all.push({ family, dataUrl });
     localStorage.setItem(CUSTOM_KEY, JSON.stringify(all));
   } catch {
-    // quota exceeded — font still works for this session
+    /* quota exceeded — font still works for this session */
   }
   return family;
 }
 
-/** Re-registers every previously imported font on page load. */
 export async function restoreCustomFonts() {
   const all = readCustom();
   await Promise.all(
@@ -146,3 +220,19 @@ export async function restoreCustomFonts() {
 
 export const getCustomFonts = () => [...customFonts];
 
+export function refreshTextObject(obj) {
+  if (!obj) return;
+  obj.dirty = true;
+  if (typeof obj.initDimensions === "function") obj.initDimensions();
+  if (typeof obj.setCoords === "function") obj.setCoords();
+}
+
+export function fabricFamily(name) {
+  if (!name) return "Oswald";
+  const clean = String(name).replace(/["']/g, "").trim();
+  return clean.includes(" ") ? `"${clean}"` : clean;
+}
+
+export function plainFamily(name) {
+  return String(name || "Oswald").replace(/["']/g, "").trim();
+}

@@ -1,5 +1,6 @@
-const C = 310;
-const INK = "#003399";
+import { C, INK, F, ring, arc, txt, star } from "./shared.js";
+
+const ink = INK.blue;
 
 export default {
   id: "corporateSeal",
@@ -8,65 +9,26 @@ export default {
   order: 3,
   tags: ["round", "triple ring", "seal"],
   build: () => [
-    { type: "circle", r: 252, cx: C, cy: C, stroke: INK, strokeWidth: 6, name: "Outer ring" },
-    { type: "circle", r: 236, cx: C, cy: C, stroke: INK, strokeWidth: 2, name: "Middle ring" },
-    { type: "circle", r: 168, cx: C, cy: C, stroke: INK, strokeWidth: 2, name: "Inner ring" },
-    {
-      type: "arc",
-      text: "MERIDIAN HOLDINGS INC.",
-      radius: 200,
-      position: "top",
-      fontSize: 31,
-      fontFamily: "Oswald",
-      fontWeight: "700",
-      fill: INK,
-      letterSpacing: 2.5,
-      cx: C,
-      cy: C,
+    ring(252, 6, ink, "Outer ring"),
+    ring(234, 2, ink, "Middle ring"),
+    ring(162, 2, ink, "Inner ring"),
+    arc("MERIDIAN HOLDINGS INC.", 196, "top", 26, F.stamp, ink, {
+      letterSpacing: 2,
       name: "Company arc",
-    },
-    {
-      type: "arc",
-      text: "CORPORATE SEAL",
-      radius: 200,
-      position: "bottom",
-      fontSize: 25,
-      fontFamily: "Oswald",
-      fontWeight: "700",
-      fill: INK,
-      letterSpacing: 4,
-      cx: C,
-      cy: C,
+    }),
+    arc("CORPORATE SEAL", 196, "bottom", 20, F.stamp, ink, {
+      letterSpacing: 5,
       name: "Seal arc",
-    },
-    { type: "star", outer: 13, inner: 5.5, points: 5, cx: C - 180, cy: C, fill: INK, stroke: INK, strokeWidth: 0, name: "Star left" },
-    { type: "star", outer: 13, inner: 5.5, points: 5, cx: C + 180, cy: C, fill: INK, stroke: INK, strokeWidth: 0, name: "Star right" },
-    { type: "star", outer: 34, inner: 14, points: 5, cx: C, cy: C - 72, fill: INK, stroke: INK, strokeWidth: 0, name: "Centre star" },
-    {
-      type: "text",
-      text: "REGISTERED",
-      fontSize: 34,
-      fontFamily: "Oswald",
-      fontWeight: "700",
-      fill: INK,
-      charSpacing: 60,
-      cx: C,
-      cy: C + 14,
-      w: 290,
-      name: "Centre",
-    },
-    {
-      type: "text",
-      text: "REG. 2024-00917",
-      fontSize: 17,
-      fontFamily: "Roboto Mono",
+    }),
+    star(C - 176, C, 11, 4.5, ink, "Star left"),
+    star(C + 176, C, 11, 4.5, ink, "Star right"),
+    star(C, C - 58, 28, 12, ink, "Centre star"),
+    txt("REGISTERED", 26, F.classic, ink, C + 18, { fontWeight: "700", charSpacing: 30, w: 260, name: "Centre" }),
+    txt("REG. 2024-00917", 14, F.mono, ink, C + 58, {
       fontWeight: "400",
-      fill: INK,
       charSpacing: 0,
-      cx: C,
-      cy: C + 62,
-      w: 280,
+      w: 240,
       name: "Reg number",
-    },
+    }),
   ],
 };

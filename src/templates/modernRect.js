@@ -1,14 +1,26 @@
-const C = 310;
+import { C, INK, F, box, txt } from "./shared.js";
+
+const ink = INK.navy;
 
 export default {
   id: "modernRect",
   name: "Modern Rectangle",
   tags: ["rect", "3 lines"],
   build: () => [
-    { type: "rect", w: 460, h: 240, rx: 22, cx: C, cy: C, strokeWidth: 7, name: "Border" },
-    { type: "rect", w: 432, h: 212, rx: 16, cx: C, cy: C, strokeWidth: 2, name: "Inner border" },
-    { type: "text", text: "NORTHSTAR LTD.", fontSize: 44, cx: C, cy: C - 58, w: 420 },
-    { type: "text", text: "DOCUMENT CONTROL", fontSize: 26, fontFamily: "Inter", fontWeight: "600", cx: C, cy: C + 2, w: 420 },
-    { type: "text", text: "QUALITY  •  VERIFIED  •  2024", fontSize: 20, fontFamily: "Inter", fontWeight: "400", cx: C, cy: C + 58, w: 420 },
+    box(470, 236, 7, ink, "Border", { rx: 18 }),
+    box(440, 206, 2, ink, "Inner border", { rx: 12 }),
+    txt("NORTHSTAR LTD.", 36, F.display, ink, C - 52, { charSpacing: 8, w: 400, name: "Company" }),
+    txt("DOCUMENT CONTROL", 20, F.ui, ink, C + 6, {
+      fontWeight: "600",
+      charSpacing: 80,
+      w: 400,
+      name: "Role",
+    }),
+    txt("QUALITY  ·  VERIFIED  ·  2024", 15, F.ui, ink, C + 52, {
+      fontWeight: "400",
+      charSpacing: 40,
+      w: 400,
+      name: "Meta",
+    }),
   ],
 };

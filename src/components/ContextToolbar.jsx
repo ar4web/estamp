@@ -143,7 +143,17 @@ export default function ContextToolbar({ scrollRef }) {
       <Btn title="Flip Vertical" onClick={() => mutate({ flipY: !selected.flipY })}>
         <FlipVertical size={15} />
       </Btn>
-      <Btn title="Rotate 90°" onClick={() => mutate({ angle: ((selected.angle || 0) + 90) % 360 })}>
+      <Btn
+        title="Rotate 15°"
+        onClick={() => {
+          const next = (selected.angle || 0) + 15;
+          if (typeof selected.rotate === "function") selected.rotate(next);
+          else mutate({ angle: next });
+          selected.setCoords();
+          canvas.requestRenderAll();
+          commit();
+        }}
+      >
         <RotateCw size={15} />
       </Btn>
       {isText && (

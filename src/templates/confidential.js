@@ -1,15 +1,44 @@
-const C = 310;
+import { C, INK, F, box, txt } from "./shared.js";
+
+const ink = INK.red;
 
 export default {
   id: "confidential",
   name: "Confidential",
   tags: ["rect", "security"],
   build: () => [
-    { type: "rect", w: 520, h: 200, rx: 4, cx: C, cy: C, strokeWidth: 10 },
-    { type: "rect", w: 494, h: 174, rx: 2, cx: C, cy: C, strokeWidth: 2 },
-    { type: "text", text: "CONFIDENTIAL", fontSize: 62, cx: C, cy: C - 10, w: 500, charSpacing: 40 },
-    { type: "text", text: "DO NOT DISTRIBUTE", fontSize: 20, fontFamily: "Inter", fontWeight: "600", cx: C, cy: C + 52, w: 480, charSpacing: 200 },
-    { type: "rect", w: 540, h: 14, cx: C, cy: C - 86, angle: -6, fill: "#000000", strokeWidth: 0, opacity: 0.85, name: "Ink strip" },
-    { type: "rect", w: 540, h: 14, cx: C, cy: C + 86, angle: -6, fill: "#000000", strokeWidth: 0, opacity: 0.85, name: "Ink strip" },
+    box(520, 196, 10, ink, "Outer", { rx: 4 }),
+    box(492, 168, 2, ink, "Inner", { rx: 2 }),
+    txt("CONFIDENTIAL", 48, F.black, ink, C - 8, { charSpacing: 8, w: 460, name: "Title" }),
+    txt("DO NOT DISTRIBUTE", 16, F.ui, ink, C + 48, {
+      fontWeight: "600",
+      charSpacing: 140,
+      w: 440,
+      name: "Subtitle",
+    }),
+    {
+      type: "rect",
+      w: 540,
+      h: 10,
+      cx: C,
+      cy: C - 82,
+      angle: -5,
+      fill: ink,
+      strokeWidth: 0,
+      opacity: 0.9,
+      name: "Ink strip top",
+    },
+    {
+      type: "rect",
+      w: 540,
+      h: 10,
+      cx: C,
+      cy: C + 82,
+      angle: -5,
+      fill: ink,
+      strokeWidth: 0,
+      opacity: 0.9,
+      name: "Ink strip bottom",
+    },
   ],
 };

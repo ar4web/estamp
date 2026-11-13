@@ -8,51 +8,47 @@ export default function ZoomControls() {
 
   return (
     <div
-      className="absolute bottom-3 right-3 z-20 flex items-center gap-1 border px-1.5 py-1 shadow-2xl"
+      className="flex h-9 shrink-0 items-center justify-center gap-1 border-t px-2"
       style={{
         background: "var(--bg-panel)",
         borderColor: "var(--border)",
       }}
     >
-      <Tooltip label="Toggle Rulers" hint="Metric mm / cm scale" side="top">
+      <Tooltip label="Rulers" side="top">
         <button
           type="button"
-          className="btn !border-0"
+          className="btn btn-icon h-7 w-7 p-0"
           aria-pressed={showRulers}
           aria-label="Toggle rulers"
           onClick={toggleRulers}
           style={showRulers ? { color: "var(--accent)" } : undefined}
         >
-          <Ruler size={16} />
+          <Ruler size={14} />
         </button>
       </Tooltip>
-
-      <Tooltip label="Toggle Grid" hint="Alignment grid" side="top">
+      <Tooltip label="Grid" side="top">
         <button
           type="button"
-          className="btn !border-0"
+          className="btn btn-icon h-7 w-7 p-0"
           aria-pressed={showGrid}
           aria-label="Toggle grid"
           onClick={toggleGrid}
           style={showGrid ? { color: "var(--accent)" } : undefined}
         >
-          <Grid3x3 size={16} />
+          <Grid3x3 size={14} />
         </button>
       </Tooltip>
-
-      <div className="h-5 w-px bg-[var(--border)]" />
-
-      <Tooltip label="Zoom Out" hint="25%" side="top">
+      <span className="mx-0.5 h-4 w-px" style={{ background: "var(--border)" }} />
+      <Tooltip label="Zoom out" side="top">
         <button
           type="button"
-          className="btn !border-0"
+          className="btn btn-icon h-7 w-7 p-0"
           aria-label="Zoom out"
           onClick={() => zoomBy(-0.25)}
         >
-          <Minus size={16} />
+          <Minus size={14} />
         </button>
       </Tooltip>
-
       <input
         type="range"
         min={50}
@@ -60,33 +56,27 @@ export default function ZoomControls() {
         step={5}
         value={Math.round(zoom * 100)}
         onChange={(e) => setZoom(Number(e.target.value) / 100)}
-        className="hidden w-20 sm:block cursor-ew-resize"
-        aria-label="Canvas zoom slider"
+        className="h-7 w-28 cursor-ew-resize sm:w-40"
+        aria-label="Canvas zoom"
       />
-
-      <span className="w-10 text-center text-[10px] font-semibold tabular-nums" style={{ color: "var(--text)" }}>
-        {Math.round(zoom * 100)}%
-      </span>
-
-      <Tooltip label="Zoom In" hint="25%" side="top">
+      <Tooltip label="Zoom in" side="top">
         <button
           type="button"
-          className="btn !border-0"
+          className="btn btn-icon h-7 w-7 p-0"
           aria-label="Zoom in"
           onClick={() => zoomBy(0.25)}
         >
-          <Plus size={16} />
+          <Plus size={14} />
         </button>
       </Tooltip>
-
-      <Tooltip label="Reset 100%" hint="Actual size" side="top">
+      <Tooltip label="100%" side="top">
         <button
           type="button"
-          className="btn !border-0"
+          className="btn btn-icon h-7 w-7 p-0"
           aria-label="Reset zoom to 100%"
           onClick={() => setZoom(1)}
         >
-          <Maximize2 size={16} />
+          <Maximize2 size={14} />
         </button>
       </Tooltip>
     </div>

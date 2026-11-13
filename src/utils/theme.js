@@ -30,7 +30,7 @@ function luminance(hex) {
 export const DEFAULT_ACCENT = "#c4a574";
 
 export const CORNER_PRESETS = {
-  square: { radius: "0px", radiusLg: "0px" },
+  square: { radius: "2px", radiusLg: "2px" },
   soft: { radius: "8px", radiusLg: "12px" },
   round: { radius: "14px", radiusLg: "20px" },
 };

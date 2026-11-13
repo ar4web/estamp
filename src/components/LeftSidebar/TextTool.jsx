@@ -3,7 +3,7 @@ import { Plus, RefreshCw } from "lucide-react";
 import useStampStore from "../../store/useStampStore";
 import { CANVAS_SIZE, createSpecObject, rebuildArc, renderTemplateThumb, selectionKind } from "../../utils/canvas";
 import { addObject, applyFieldLook, applyMarkLook, applyStampLook, fieldLookSpecs, markLookSpecs, stampLookSpecs } from "../../utils/actions";
-import { FONT_SETS, fontForScript, getCustomFonts, loadFont } from "../../utils/fonts";
+import { FONT_SETS, fabricFamily, fontForScript, getCustomFonts, loadFont, refreshTextObject } from "../../utils/fonts";
 import { isRTL } from "../../utils/arabic";
 import { DATE_FORMATS } from "../../utils/fields";
 import { FIELD_LOOKS, FIELD_STAMPS, MARK_LOOKS, OFFICE_MARKS, STAMP_LOOKS, TEXT_PHRASES } from "../../utils/phrases";
@@ -78,7 +78,10 @@ export default function TextTool() {
     setFont(family);
     if (editingSelection && canvas) {
       if (selKind === "arc") rebuildArc(canvas, selected, { fontFamily: family });
-      else selected.set({ fontFamily: family });
+      else {
+        selected.set({ fontFamily: fabricFamily(family) });
+        refreshTextObject(selected);
+      }
       selected.setCoords?.();
       canvas.requestRenderAll();
       commit();
@@ -252,7 +255,12 @@ export default function TextTool() {
             ))}
           </div>
         </Row>
-        <FontPicker fonts={[...FONT_BUTTONS, ...custom]} value={font} onSelect={applyFont} />
+        <FontPicker
+          fonts={[...custom, ...FONT_SETS.flatMap((g) => g.fonts)]}
+          value={font}
+          onSelect={applyFont}
+          grouped
+        />
       </Fold>
 
       <Fold title="Looks" hint="stamp + text" open>

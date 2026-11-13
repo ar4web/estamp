@@ -17,6 +17,7 @@ import { selectionKind } from "../../utils/canvas";
 import { objectInkHex } from "../../utils/color";
 import { bringForward, sendBackwards } from "../../utils/actions";
 import { Empty } from "../ui";
+import Tooltip from "../Tooltip";
 
 const ICON = {
   text: Type,
@@ -79,21 +80,20 @@ export default function LayersPanel() {
   };
 
   const Mini = ({ title, onClick, children, on, danger }) => (
-    <button
-      type="button"
-      title={title}
-      aria-label={title}
-      onClick={(e) => {
-        e.stopPropagation();
-        onClick();
-      }}
-      className={`grid h-7 w-7 shrink-0 place-items-center transition-colors ${
-        danger ? "danger-hover" : "hover:text-white"
-      }`}
-      style={{ color: on ? "var(--accent)" : "var(--text-dim)" }}
-    >
-      {children}
-    </button>
+    <Tooltip label={title} side="left" delay={160}>
+      <button
+        type="button"
+        aria-label={title}
+        onClick={(e) => {
+          e.stopPropagation();
+          onClick();
+        }}
+        className={`grid h-6 w-6 shrink-0 place-items-center ${danger ? "danger-hover" : ""}`}
+        style={{ color: on ? "var(--accent)" : "var(--text-dim)" }}
+      >
+        {children}
+      </button>
+    </Tooltip>
   );
 
   return (
@@ -112,7 +112,7 @@ export default function LayersPanel() {
               role="button"
               tabIndex={0}
               onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), select(obj))}
-              className="flex cursor-pointer items-center gap-1 border px-2 py-1.5"
+              className="flex cursor-pointer items-center gap-1.5 border px-1.5 py-1"
               aria-pressed={isActive}
               style={{
                 borderColor: isActive ? "var(--accent)" : "var(--border-soft)",
@@ -120,16 +120,15 @@ export default function LayersPanel() {
                 opacity: obj.visible === false ? 0.45 : 1,
               }}
             >
-               <Icon size={14} style={{ color: objectInkHex(obj) || "var(--text-dim)" }} className="shrink-0" />
-                <span
-                  className="h-3 w-3 shrink-0 border"
-                  style={{
-                    background: objectInkHex(obj) || "transparent",
-                    borderColor: "var(--border-soft)",
-                  }}
-                  title={objectInkHex(obj) || "No fill"}
-                />
-                <span className="min-w-0 flex-1 truncate text-[11px] font-medium">{obj.name || kind}</span>
+              <Icon size={13} style={{ color: objectInkHex(obj) || "var(--text-dim)" }} className="shrink-0" />
+              <span
+                className="h-2.5 w-2.5 shrink-0 border"
+                style={{
+                  background: objectInkHex(obj) || "transparent",
+                  borderColor: "var(--border-soft)",
+                }}
+              />
+              <span className="min-w-0 flex-1 truncate text-[11px] font-medium">{obj.name || kind}</span>
               <Mini
                 title="Move up"
                 onClick={() => {
@@ -138,7 +137,7 @@ export default function LayersPanel() {
                   touchLayers();
                 }}
               >
-                <ChevronUp size={13} />
+                <ChevronUp size={12} />
               </Mini>
               <Mini
                 title="Move down"
@@ -148,20 +147,20 @@ export default function LayersPanel() {
                   touchLayers();
                 }}
               >
-                <ChevronDown size={13} />
+                <ChevronDown size={12} />
               </Mini>
               <Mini title={obj.visible === false ? "Show" : "Hide"} onClick={() => toggleVisible(obj)}>
-                {obj.visible === false ? <EyeOff size={13} /> : <Eye size={13} />}
+                {obj.visible === false ? <EyeOff size={12} /> : <Eye size={12} />}
               </Mini>
               <Mini
                 title={obj.lockedLayer ? "Unlock" : "Lock"}
                 on={!!obj.lockedLayer}
                 onClick={() => toggleLock(obj)}
               >
-                {obj.lockedLayer ? <Lock size={13} /> : <Unlock size={13} />}
+                {obj.lockedLayer ? <Lock size={12} /> : <Unlock size={12} />}
               </Mini>
               <Mini title="Delete layer" danger onClick={() => remove(obj)}>
-                <Trash2 size={13} />
+                <Trash2 size={12} />
               </Mini>
             </div>
           );

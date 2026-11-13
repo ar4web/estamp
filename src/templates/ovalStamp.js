@@ -1,12 +1,19 @@
-const C = 310;
+import { C, INK, F, oval, txt } from "./shared.js";
+
+const ink = INK.blue;
 
 export default {
   id: "ovalStamp",
   name: "Bold Oval",
   tags: ["oval", "2 lines"],
   build: () => [
-    { type: "ellipse", rx: 258, ry: 160, cx: C, cy: C, strokeWidth: 12 },
-    { type: "text", text: "ATLAS STUDIO", fontSize: 54, cx: C, cy: C - 30, w: 440, charSpacing: 60 },
-    { type: "text", text: "DESIGN & PRINT", fontSize: 28, fontFamily: "Inter", fontWeight: "600", charSpacing: 160, cx: C, cy: C + 36, w: 440 },
+    oval(258, 156, 12, ink, "Oval"),
+    txt("ATLAS STUDIO", 42, F.display, ink, C - 22, { charSpacing: 20, w: 400, name: "Brand" }),
+    txt("DESIGN & PRINT", 20, F.ui, ink, C + 32, {
+      fontWeight: "600",
+      charSpacing: 100,
+      w: 400,
+      name: "Tagline",
+    }),
   ],
 };

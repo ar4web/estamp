@@ -4,6 +4,8 @@ import useStampStore from "../../store/useStampStore";
 import { CANVAS_SIZE, buildShapeWithDoubleBorder } from "../../utils/canvas";
 import { addObject } from "../../utils/actions";
 import { Checkbox, Row, Slider } from "../ui";
+import AlignTool from "./AlignTool";
+import DistressTool from "./DistressTool";
 
 const C = CANVAS_SIZE / 2;
 
@@ -45,8 +47,7 @@ export default function BorderTool() {
 
   return (
     <div>
-      <Row label="Frame">
-        <div className="grid grid-cols-3 gap-1.5">
+      <div className="mb-2 grid grid-cols-3 gap-1.5">
           {SHAPES.map((s) => (
             <button
               key={s.id}
@@ -64,17 +65,20 @@ export default function BorderTool() {
             </button>
           ))}
         </div>
-      </Row>
 
       <Slider label="Stroke" value={strokeWidth} min={1} max={20} onChange={setStrokeWidth} suffix="px" />
       <Slider label="Size" value={scale} min={30} max={120} onChange={setScale} suffix="%" />
-      <Checkbox label="Double border" checked={double} onChange={setDouble} hint="Adds a nested inner ring when you place a frame." />
+      <Checkbox label="Double border" checked={double} onChange={setDouble} />
       {double && <Slider label="Gap" value={gap} min={2} max={40} onChange={setGap} suffix="px" />}
       <Checkbox label="Solid fill" checked={filled} onChange={setFilled} />
       <Checkbox label="Dashed stroke" checked={dashed} onChange={setDashed} />
-      <p className="text-[11px] leading-relaxed" style={{ color: "var(--text-mute)" }}>
-        Places a single frame in current ink. Double and fill are optional.
-      </p>
+
+      <div className="my-3 h-px" style={{ background: "var(--border-soft)" }} />
+      <p className="label mb-2">Align</p>
+      <AlignTool />
+      <div className="my-3 h-px" style={{ background: "var(--border-soft)" }} />
+      <p className="label mb-2">Distress</p>
+      <DistressTool />
     </div>
   );
 }

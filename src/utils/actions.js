@@ -6,6 +6,7 @@ import {
   addImageFromFile,
   applyStampFilter,
   applyTemplate,
+  templateFonts,
   clipObjectToRing,
   exportJPG,
   exportPNG,
@@ -14,6 +15,7 @@ import {
 } from "./canvas";
 import { getTemplate } from "../templates";
 import { fieldText, refreshLiveFields } from "./fields";
+import { ensureFonts } from "./fonts";
 
 const S = () => useStampStore.getState();
 const C = () => useStampStore.getState().canvas;
@@ -171,7 +173,9 @@ export function rotateSelection(deg) {
     S().toast("Select a layer to rotate", "info");
     return;
   }
-  active.rotate((active.angle || 0) + deg);
+  const next = (active.angle || 0) + deg;
+  if (typeof active.rotate === "function") active.rotate(next);
+  else active.set({ angle: next });
   active.setCoords();
   canvas.requestRenderAll();
   S().commit();
@@ -240,11 +244,12 @@ export function clearCanvas(silent) {
   if (!silent) S().toast("Canvas cleared", "info");
 }
 
-export function loadTemplate(idOrTemplate, { silent = false } = {}) {
+export async function loadTemplate(idOrTemplate, { silent = false } = {}) {
   const canvas = C();
   if (!canvas) return;
   const tpl =
     typeof idOrTemplate === "string" ? getTemplate(idOrTemplate) : idOrTemplate;
+  await ensureFonts(templateFonts(tpl));
   history.lock();
   applyTemplate(canvas, tpl);
   history.unlock();

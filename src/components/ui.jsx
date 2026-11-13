@@ -11,7 +11,7 @@ export function Row({ label, hint, children, className = "" }) {
   return (
     <div className={`mb-2 min-w-0 ${className}`}>
       {label && (
-        <div className="mb-1.5 flex h-4 items-center justify-between gap-2">
+        <div className="mb-1.5 flex min-h-4 items-center justify-between gap-2">
           <span className="label">{label}</span>
           {hint && (
             <span className="shrink-0 text-[9px] font-medium" style={{ color: "var(--text-mute)" }}>

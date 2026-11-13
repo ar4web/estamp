@@ -5,6 +5,8 @@ import {
   ArrowUpToLine,
   Copy,
   Crosshair,
+  RotateCcw,
+  RotateCw,
   Trash2,
 } from "lucide-react";
 import useStampStore from "../../store/useStampStore";
@@ -14,6 +16,7 @@ import {
   bringToFront,
   deleteSelection,
   duplicateSelection,
+  rotateSelection,
   sendToBack,
 } from "../../utils/actions";
 import Tooltip from "../Tooltip";
@@ -46,8 +49,8 @@ export default function TransformBlock({ obj }) {
 
   return (
     <>
-      <div className="mb-2 flex min-w-0 items-start gap-3 overflow-hidden">
-        <div className="shrink-0">
+      <div className="mb-2 grid grid-cols-2 gap-2">
+        <div className="min-w-0">
           <span className="label mb-1 block">Align</span>
           <div className="icon-row">
             <Act title="Centre horizontally" icon={AlignCenterVertical} onClick={() => alignSelection("h")} />
@@ -56,13 +59,20 @@ export default function TransformBlock({ obj }) {
           </div>
         </div>
         <div className="min-w-0">
-          <span className="label mb-1 block">Arrange</span>
+          <span className="label mb-1 block">Rotate</span>
           <div className="icon-row">
-            <Act title="Bring to front" icon={ArrowUpToLine} onClick={bringToFront} />
-            <Act title="Send to back" icon={ArrowDownToLine} onClick={sendToBack} />
-            <Act title="Duplicate" icon={Copy} onClick={duplicateSelection} />
-            <Act title="Delete" icon={Trash2} danger onClick={deleteSelection} />
+            <Act title="Rotate -15" icon={RotateCcw} onClick={() => rotateSelection(-15)} />
+            <Act title="Rotate +15" icon={RotateCw} onClick={() => rotateSelection(15)} />
           </div>
+        </div>
+      </div>
+      <div className="mb-2">
+        <span className="label mb-1 block">Arrange</span>
+        <div className="icon-row">
+          <Act title="Bring to front" icon={ArrowUpToLine} onClick={bringToFront} />
+          <Act title="Send to back" icon={ArrowDownToLine} onClick={sendToBack} />
+          <Act title="Duplicate" icon={Copy} onClick={duplicateSelection} />
+          <Act title="Delete" icon={Trash2} danger onClick={deleteSelection} />
         </div>
       </div>
       <Slider
@@ -78,7 +88,14 @@ export default function TransformBlock({ obj }) {
         value={Math.round(obj.angle ?? 0)}
         min={-180}
         max={180}
-        onChange={(v) => update({ angle: v })}
+        onChange={(v) => {
+          if (typeof obj.rotate === "function") obj.rotate(v);
+          else obj.set({ angle: v });
+          obj.setCoords();
+          canvas.requestRenderAll();
+          commit();
+          touch();
+        }}
         suffix="°"
       />
     </>

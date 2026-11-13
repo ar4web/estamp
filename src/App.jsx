@@ -79,11 +79,7 @@ export default function App() {
     <div className="flex h-full w-full flex-col overflow-hidden" style={{ background: "var(--bg-primary)" }}>
       <a href="#canvas-workspace" className="skip-link">Skip to canvas</a>
       <TopBar />
-      {/* consistent 8px gutters between the three work regions */}
-      <div
-        className="relative flex min-h-0 flex-1 gap-2 p-2"
-        style={{ background: "var(--bg-primary)" }}
-      >
+      <div className="relative flex min-h-0 flex-1 overflow-hidden">
         <LeftSidebar />
         <CanvasArea />
         <RightPanel />

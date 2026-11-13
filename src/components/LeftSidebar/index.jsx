@@ -2,10 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   Bookmark,
   ChevronLeft,
-  Crosshair,
-  Droplets,
   Flower2,
-  GripVertical,
   FolderOpen,
   Image as ImageIcon,
   LayoutGrid,
@@ -23,18 +20,14 @@ import SurfaceTool from "./SurfaceTool";
 import TemplateGallery from "./TemplateGallery";
 import OrnamentTool from "./OrnamentTool";
 import BorderTool from "./BorderTool";
-import AlignTool from "./AlignTool";
-import DistressTool from "./DistressTool";
 import ClipTool from "./ClipTool";
 
 const SECTIONS = [
   { id: "template", label: "Templates", hint: "Start from a layout", icon: LayoutGrid, Component: TemplateGallery },
   { id: "text", label: "Text", hint: "Words, marks, dates", icon: Type, Component: TextTool },
-  { id: "border", label: "Frame", hint: "Outer stamp shape", icon: Scan, Component: BorderTool },
+  { id: "border", label: "Frame", hint: "Shape, align, distress", icon: Scan, Component: BorderTool },
   { id: "ornament", label: "Ornaments", hint: "Stars, seals, flourishes", icon: Flower2, Component: OrnamentTool },
   { id: "image", label: "Logo", hint: "Drop, knock out, vectorize", icon: ImageIcon, Component: ImageTool },
-  { id: "align", label: "Align", hint: "Centre and snap", icon: Crosshair, Component: AlignTool },
-  { id: "distress", label: "Distress", hint: "Worn rubber ink", icon: Droplets, Component: DistressTool },
   { id: "clip", label: "Clips", hint: "Reuse motifs", icon: Bookmark, Component: ClipTool },
   { id: "auto", label: "Auto Design", hint: "Build a full stamp", icon: Wand2, Component: AutoDesignTool },
 ];
@@ -94,10 +87,10 @@ export default function LeftSidebar() {
                 aria-label={s.label}
                 title={s.label}
                 onClick={() => setActive(s.id)}
-                className="rail-btn !h-11 !w-14 shrink-0 !border-l-0 !border-b-2"
+                className="rail-btn !h-11 !w-12 shrink-0 !border-l-0 !border-b-2"
                 style={
                   active === s.id
-                    ? { borderBottomColor: "var(--border)", color: "var(--text)" }
+                    ? { borderBottomColor: "var(--accent)", color: "var(--accent)" }
                     : { borderBottomColor: "transparent" }
                 }
               >
@@ -105,10 +98,10 @@ export default function LeftSidebar() {
               </button>
             ))}
           </div>
-          <div className="scroll-thin flex-1 overflow-y-auto p-3">
+          <div className="scroll-thin flex-1 overflow-y-auto p-2.5">
             <Current />
           </div>
-          <div className="shrink-0 border-t px-3 py-2" style={{ borderColor: "var(--border-soft)" }}>
+          <div className="shrink-0 border-t px-2.5 py-2" style={{ borderColor: "var(--border-soft)" }}>
             <button
               type="button"
               className="btn w-full mb-2"
@@ -128,7 +121,7 @@ export default function LeftSidebar() {
     <div className="relative z-30 flex h-full shrink-0" onMouseEnter={enter} onMouseLeave={leave}>
       <nav
         aria-label="Insert tools"
-        className="flex h-full shrink-0 flex-col border"
+        className="flex h-full shrink-0 flex-col border-r"
         style={{
           width: "var(--rail-w)",
           background: "var(--bg-panel)",
@@ -157,7 +150,7 @@ export default function LeftSidebar() {
                   }}
                   className={`rail-btn ${pulse && s.id === "template" ? "pulse-hint" : ""}`}
                 >
-                  <s.icon size={18} strokeWidth={1.75} />
+                  <s.icon size={16} strokeWidth={1.75} />
                 </button>
               </Tooltip>
             </div>
@@ -173,7 +166,7 @@ export default function LeftSidebar() {
               title="My Stamps"
               onClick={() => openModal("saveload")}
             >
-              <FolderOpen size={18} />
+              <FolderOpen size={16} />
             </button>
           </Tooltip>
           <SurfaceTool compact />
@@ -181,34 +174,33 @@ export default function LeftSidebar() {
       </nav>
 
       <div
-        className="h-full overflow-hidden border-y border-r"
+        className="h-full overflow-hidden border-r"
         style={{
-          width: openPanel ? 268 : 0,
+          width: openPanel ? "var(--drawer-w)" : 0,
           opacity: openPanel ? 1 : 0,
           borderColor: openPanel ? "var(--border)" : "transparent",
           background: "var(--bg-panel)",
           transition: "width .18s ease, opacity .14s ease",
         }}
       >
-        <div className="flex h-full w-[268px] flex-col">
+        <div className="flex h-full flex-col" style={{ width: "var(--drawer-w)" }}>
           <div
-            className="flex h-11 shrink-0 items-center gap-2 border-b px-3"
-            style={{ borderColor: "var(--border-soft)", background: "var(--bg-raised)" }}
+            className="flex h-9 shrink-0 items-center gap-2 border-b px-2.5"
+            style={{ borderColor: "var(--border-soft)" }}
           >
-            <GripVertical size={14} style={{ color: "var(--text-mute)" }} aria-hidden />
-            <h2 className="flex-1 truncate text-[11px] font-semibold uppercase tracking-[0.1em]">
+            <h2 className="flex-1 truncate text-[10px] font-semibold uppercase tracking-[0.1em]">
               {SECTIONS.find((s) => s.id === active)?.label}
             </h2>
             <button
-              className="btn btn-ghost btn-icon"
+              className="btn btn-ghost btn-icon h-7 w-7"
               title="Collapse panel"
               aria-label="Collapse panel"
               onClick={collapse}
             >
-              <ChevronLeft size={15} />
+              <ChevronLeft size={14} />
             </button>
           </div>
-          <div className="scroll-thin flex-1 overflow-y-auto px-3 py-2">
+          <div className="scroll-thin flex-1 overflow-y-auto px-2.5 py-2">
             <Current />
           </div>
         </div>

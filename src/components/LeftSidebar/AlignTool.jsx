@@ -61,12 +61,12 @@ export default function AlignTool() {
           </Cell>
         </div>
       </Row>
-      <Row label="Turn">
+      <Row label="Turn" hint="shift-drag snaps 15°">
         <div className="grid grid-cols-4 gap-1.5">
-          <Cell label="-15" onClick={() => rotateSelection(-15)}>
+          <Cell label="-15°" onClick={() => rotateSelection(-15)}>
             <RotateCcw size={14} />
           </Cell>
-          <Cell label="+15" onClick={() => rotateSelection(15)}>
+          <Cell label="+15°" onClick={() => rotateSelection(15)}>
             <RotateCw size={14} />
           </Cell>
           <Cell label="Flip H" onClick={() => flipSelection("h")}>

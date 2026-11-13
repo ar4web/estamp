@@ -22,6 +22,7 @@ export default function DraggablePanel({
   side = "left",
   open,
   onClose,
+  actions,
   children,
 }) {
   const mobile = useIsMobile();
@@ -45,7 +46,7 @@ export default function DraggablePanel({
       if (!drag.current) return;
       const dx = ev.clientX - drag.current.startX;
       const next = side === "right" ? drag.current.startW - dx : drag.current.startW + dx;
-      setDockWidth(Math.min(440, Math.max(260, next)));
+      setDockWidth(Math.min(480, Math.max(280, next)));
     };
     const onUp = () => {
       drag.current = null;
@@ -76,14 +77,20 @@ export default function DraggablePanel({
 
   const header = (
     <div
-      className="flex h-10 shrink-0 items-center gap-2 border-b px-2.5"
+      className="flex h-10 shrink-0 items-center gap-1.5 border-b px-2"
       style={{ borderColor: "var(--border)", background: "var(--bg-raised)" }}
     >
       {side === "right" && !mobile && collapseBtn}
-      {Icon && <Icon size={14} style={{ color: "var(--accent)" }} aria-hidden />}
-      <h2 className="flex-1 truncate text-[10px] font-semibold uppercase tracking-[0.08em]">
-        {title}
-      </h2>
+      {actions ? (
+        <div className="flex min-w-0 flex-1 items-center justify-end gap-0.5">{actions}</div>
+      ) : (
+        <>
+          {Icon && <Icon size={14} style={{ color: "var(--accent)" }} aria-hidden />}
+          <h2 className="flex-1 truncate text-[10px] font-semibold uppercase tracking-[0.08em]">
+            {title}
+          </h2>
+        </>
+      )}
       {(side !== "right" || mobile) && collapseBtn}
     </div>
   );
