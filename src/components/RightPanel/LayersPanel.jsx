@@ -117,18 +117,18 @@ export default function LayersPanel() {
               style={{
                 borderColor: isActive ? "var(--accent)" : "var(--border-soft)",
                 background: isActive ? "var(--bg-raised)" : "var(--bg-sunken)",
-                opacity: obj.visible === false ? 0.45 : 1,
               }}
             >
-              <Icon size={13} style={{ color: objectInkHex(obj) || "var(--text-dim)" }} className="shrink-0" />
+              <Icon size={14} style={{ color: "var(--text-dim)" }} className="shrink-0" aria-hidden />
               <span
                 className="h-2.5 w-2.5 shrink-0 border"
                 style={{
                   background: objectInkHex(obj) || "transparent",
                   borderColor: "var(--border-soft)",
+                  opacity: obj.visible === false ? 0.5 : 1,
                 }}
               />
-              <span className="min-w-0 flex-1 truncate text-[11px] font-medium">{obj.name || kind}</span>
+              <span className="min-w-0 flex-1 truncate text-[10px] font-normal" style={{ color: obj.visible === false ? "var(--text-mute)" : "var(--text)" }}>{obj.name || kind}</span>
               <Mini
                 title="Move up"
                 onClick={() => {

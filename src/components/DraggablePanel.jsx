@@ -27,6 +27,7 @@ export default function DraggablePanel({
   pad = true,
   background,
   className = "",
+  autoHide = false,
 }) {
   const mobile = useIsMobile();
   const hoverTimer = useRef(null);
@@ -34,6 +35,11 @@ export default function DraggablePanel({
   const drag = useRef(null);
 
   useEffect(() => () => clearTimeout(hoverTimer.current), []);
+
+  // Never let an earlier hover timer undo a deliberate open, close or pin.
+  useEffect(() => {
+    clearTimeout(hoverTimer.current);
+  }, [open, autoHide]);
 
   useEffect(() => {
     if (!mobile || !open) return;
@@ -135,7 +141,10 @@ export default function DraggablePanel({
     return (
       <button
         type="button"
-        onClick={onClose}
+        onClick={() => {
+          clearTimeout(hoverTimer.current);
+          onClose();
+        }}
         onMouseEnter={() => {
           clearTimeout(hoverTimer.current);
           hoverTimer.current = setTimeout(onClose, 450);
@@ -152,7 +161,19 @@ export default function DraggablePanel({
   }
 
   return (
-    <div className="relative h-full shrink-0" style={{ width: dockWidth }}>
+    <div
+      className="relative h-full shrink-0"
+      style={{ width: dockWidth }}
+      onMouseEnter={() => clearTimeout(hoverTimer.current)}
+      onMouseLeave={() => {
+        if (autoHide) {
+          clearTimeout(hoverTimer.current);
+          hoverTimer.current = setTimeout(() => {
+            if (!drag.current) onClose();
+          }, 450);
+        }
+      }}
+    >
       <aside
         aria-label={title}
         className={`flex h-full flex-col overflow-hidden border ${className}`}

@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
 import { Download, ImageIcon } from "lucide-react";
-import { TEMPLATES, TEMPLATE_CATEGORIES } from "../../templates";
+import { TEMPLATES } from "../../templates";
 import { downloadURL, renderTemplateThumb } from "../../utils/canvas";
 import { loadTemplate } from "../../utils/actions";
 import useStampStore from "../../store/useStampStore";
 import PresetTemplates from "./PresetTemplates";
-import CompactHead from "./CompactHead";
 
 const cache = new Map();
 
@@ -63,7 +62,7 @@ export function TemplateCard({ tpl, thumb, onClick, large }) {
 
   return (
     <div
-      className="group relative overflow-hidden border"
+      className="group relative aspect-square overflow-hidden border"
       style={{ borderColor: "var(--border-soft)", background: "var(--bg-sunken)" }}
     >
       <button
@@ -71,10 +70,10 @@ export function TemplateCard({ tpl, thumb, onClick, large }) {
         onClick={onClick}
         aria-label={`Use ${tpl.name} template`}
         title={tpl.name}
-        className="block w-full"
+        className="block h-full w-full"
       >
         <span
-          className="checkerboard grid aspect-square w-full place-items-center p-1"
+          className="checkerboard grid h-full w-full place-items-center p-1 pb-5"
           style={{ backgroundSize: "10px 10px" }}
         >
           {thumb ? (
@@ -122,7 +121,7 @@ export function TemplateCard({ tpl, thumb, onClick, large }) {
         </span>
       )}
 
-      <div className="border-t px-1 py-1" style={{ borderColor: "var(--border-soft)" }}>
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 border-t px-1 py-1" style={{ borderColor: "var(--border-soft)", background: "var(--bg-sunken)" }}>
         <p
           className={`truncate font-semibold ${large ? "text-[11px]" : "text-[9px]"}`}
           title={tpl.name}
@@ -141,32 +140,5 @@ export function TemplateCard({ tpl, thumb, onClick, large }) {
 
 export default function TemplateGallery() {
   const thumbs = useTemplateThumbs();
-
-  // Compact grouped sections — three templates per row.
-  return (
-    <div className="space-y-2">
-      {TEMPLATE_CATEGORIES.map((cat) => {
-        const items = TEMPLATES.filter((t) => t.cat === cat);
-        if (!items.length) return null;
-        return (
-          <section key={cat}>
-            <CompactHead title={cat} />
-            <div className="grid grid-cols-3 gap-1.5">
-              {items.map((tpl) => (
-                <TemplateCard
-                  key={tpl.id}
-                  tpl={tpl}
-                  thumb={thumbs[tpl.id]}
-                  onClick={() => loadTemplate(tpl)}
-                />
-              ))}
-            </div>
-          </section>
-        );
-      })}
-
-      {/* Additional stamp presets */}
-      <PresetTemplates />
-    </div>
-  );
+  return <PresetTemplates templates={TEMPLATES} templateThumbs={thumbs} Card={TemplateCard} />;
 }

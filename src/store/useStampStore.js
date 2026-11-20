@@ -262,9 +262,9 @@ export const useStampStore = create((set, get) => ({
   openModal: (modal) => set({ modal }),
   closeModal: () => set({ modal: null }),
 
-  inspectorTab: "props",
+  inspectorTab: "text",
   setInspectorTab: (tab) => {
-    const inspectorTab = ["props", "layers", "export"].includes(tab) ? tab : "props";
+    const inspectorTab = ["text", "layers"].includes(tab) ? tab : "text";
     set({ inspectorTab });
   },
   focusSection: null,
@@ -273,8 +273,11 @@ export const useStampStore = create((set, get) => ({
       set({ settingsOpen: true });
       return;
     }
-    const tab =
-      id === "layers" ? "layers" : id === "export" ? "export" : "props";
+    if (id === "export") {
+      set({ modal: "download" });
+      return;
+    }
+    const tab = id === "layers" ? "layers" : "text";
     set({
       rightOpen: true,
       inspectorTab: tab,

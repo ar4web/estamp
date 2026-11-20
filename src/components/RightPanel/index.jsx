@@ -1,17 +1,17 @@
-import { useEffect, useLayoutEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   Crosshair,
-  Download,
   Group as GroupIcon,
-  Layers,
   MousePointerClick,
   Save,
+  Pin,
+  PinOff,
   Sliders,
   Trash2,
   Ungroup,
 } from "lucide-react";
 import useStampStore from "../../store/useStampStore";
-import DraggablePanel from "../DraggablePanel";
+import DraggablePanel, { useIsMobile } from "../DraggablePanel";
 import Tooltip from "../Tooltip";
 import { Empty } from "../ui";
 import { selectionKind } from "../../utils/canvas";
@@ -21,12 +21,10 @@ import TextProperties from "./TextProperties";
 import ShapeProperties from "./ShapeProperties";
 import ImageProperties from "./ImageProperties";
 import TransformBlock from "./TransformBlock";
-import ExportPanel from "./ExportPanel";
 
 const TABS = [
-  { id: "props", label: "Properties" },
   { id: "layers", label: "Layers" },
-  { id: "export", label: "Export" },
+  { id: "text", label: "Text" },
 ];
 
 export default function RightPanel() {
@@ -44,6 +42,8 @@ export default function RightPanel() {
   void selVersion;
   void layerVersion;
 
+  const [pinned, setPinned] = useState(true);
+  const mobile = useIsMobile();
   const scrollPositions = useRef({});
   const bodyRef = useRef(null);
   const lastSelected = useRef(null);
@@ -51,14 +51,13 @@ export default function RightPanel() {
   useEffect(() => {
     if (!focusSection) return;
     if (focusSection === "layers") setInspectorTab("layers");
-    else if (focusSection === "export") setInspectorTab("export");
-    else setInspectorTab("props");
+    else setInspectorTab("text");
   }, [focusSection, setInspectorTab]);
 
-  // Smart auto-switch: selecting a new layer brings Properties forward,
+  // Smart auto-switch: selecting a new layer brings its controls forward,
   // while tab scroll positions are kept (restored in the layout effect).
   useEffect(() => {
-    if (selected && selected !== lastSelected.current) setInspectorTab("props");
+    if (selected && selected !== lastSelected.current) setInspectorTab("text");
     lastSelected.current = selected;
   }, [selected, setInspectorTab]);
 
@@ -77,7 +76,7 @@ export default function RightPanel() {
         aria-label={label}
         onClick={onClick}
         disabled={disabled}
-        className={`btn btn-icon h-7 w-7 p-0 ${danger ? "btn-danger" : ""}`}
+        className={`btn btn-icon h-6 w-6 p-0 ${danger ? "btn-danger" : ""}`}
       >
         {children}
       </button>
@@ -85,23 +84,13 @@ export default function RightPanel() {
   );
 
   const properties = !selected ? (
-    <Empty
-      icon={MousePointerClick}
-      title="Nothing selected"
-      hint="Pick a layer or click it on the canvas."
-    />
+    <Empty icon={MousePointerClick} title="Nothing selected" hint="Pick a layer or click it on the canvas." />
   ) : kind === "multi" ? (
     <div>
-      <p className="mb-2 text-[10px]" style={{ color: "var(--text-dim)" }}>
-        {selected.size()} layers selected
-      </p>
+      <p className="mb-2 text-[10px]" style={{ color: "var(--text-dim)" }}>{selected.size()} layers selected</p>
       <div className="flex gap-1.5">
-        <button type="button" className="btn flex-1" onClick={groupSelection}>
-          <GroupIcon size={15} /> Group
-        </button>
-        <button type="button" className="btn flex-1" onClick={ungroupSelection}>
-          <Ungroup size={15} /> Ungroup
-        </button>
+        <button type="button" className="btn flex-1" onClick={groupSelection}><GroupIcon size={15} /> Group</button>
+        <button type="button" className="btn flex-1" onClick={ungroupSelection}><Ungroup size={15} /> Ungroup</button>
       </div>
     </div>
   ) : (
@@ -115,9 +104,7 @@ export default function RightPanel() {
         </button>
       )}
       <div>
-        <div className="label mb-1 flex items-center gap-1.5">
-          <Crosshair size={11} /> Transform
-        </div>
+        <div className="label mb-1 flex items-center gap-1.5"><Crosshair size={11} /> Transform</div>
         <TransformBlock obj={selected} />
       </div>
     </div>
@@ -127,15 +114,25 @@ export default function RightPanel() {
     <DraggablePanel
       title="Inspector"
       icon={Sliders}
-      width={320}
+      width={280}
       side="right"
       open={rightOpen}
       onClose={toggleRight}
       pad={false}
       background="#191919"
       className="inspector-panel"
+      autoHide={!pinned}
       actions={
         <>
+          {!mobile && (
+            <Tooltip label={pinned ? "Unpin inspector" : "Pin inspector open"} side="bottom">
+              <button type="button" className="btn btn-icon h-6 w-6 p-0"
+                aria-label={pinned ? "Unpin inspector" : "Pin inspector open"}
+                aria-pressed={pinned} onClick={() => setPinned((value) => !value)}>
+                {pinned ? <Pin size={14} /> : <PinOff size={14} />}
+              </button>
+            </Tooltip>
+          )}
           <HeadBtn label="Delete" hint="Del" danger onClick={deleteSelection} disabled={!selected}>
             <Trash2 size={14} />
           </HeadBtn>
@@ -169,11 +166,10 @@ export default function RightPanel() {
         onScroll={(e) => {
           scrollPositions.current[inspectorTab] = e.currentTarget.scrollTop;
         }}
-        className="scroll-thin min-h-0 flex-1 overflow-y-auto p-2.5"
+        className="scroll-thin min-h-0 flex-1 overflow-y-auto p-2"
       >
-        {inspectorTab === "props" && properties}
         {inspectorTab === "layers" && <LayersPanel />}
-        {inspectorTab === "export" && <ExportPanel />}
+        {inspectorTab === "text" && properties}
       </div>
     </DraggablePanel>
   );
