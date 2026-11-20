@@ -1,5 +1,6 @@
 import { Component } from "react";
 import { AlertTriangle, RotateCcw, Trash2 } from "lucide-react";
+import { APP_NAME } from "../config";
 
 /**
  * Last-resort safety net. If any panel ever throws while rendering, the user
@@ -13,7 +14,7 @@ export default class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, info) {
-    console.error("[Stampcraft] render error:", error, info);
+    console.error(`[${APP_NAME}] render error:`, error, info);
   }
 
   reload = () => window.location.reload();
@@ -60,7 +61,7 @@ export default class ErrorBoundary extends Component {
       <div className="grid h-full w-full place-items-center p-4" style={{ background: "var(--bg-primary)" }}>
         <div className="w-[min(92vw,380px)] border p-5 text-center" style={{ background: "var(--bg-panel)", borderColor: "var(--border)" }}>
           <AlertTriangle size={26} className="mx-auto mb-3" style={{ color: "var(--danger, #ef4444)" }} />
-          <h1 className="mb-1 text-sm font-bold">Stampcraft hit a problem</h1>
+          <h1 className="mb-1 text-sm font-bold">{APP_NAME} hit a problem</h1>
           <p className="mb-4 text-[11px] leading-relaxed" style={{ color: "var(--text-dim)" }}>
             {String(error.message || error).slice(0, 160)}
           </p>

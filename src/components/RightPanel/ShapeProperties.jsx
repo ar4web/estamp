@@ -1,5 +1,5 @@
 import useStampStore from "../../store/useStampStore";
-import { Checkbox, Slider } from "../ui";
+import { Checkbox, Slider, SliderGrid } from "../ui";
 
 export default function ShapeProperties({ obj }) {
   const canvas = useStampStore((s) => s.canvas);
@@ -20,16 +20,40 @@ export default function ShapeProperties({ obj }) {
 
   return (
     <div>
-      <Slider
-        label="Stroke width"
-        value={obj.strokeWidth ?? 1}
-        min={0}
-        max={20}
-        step={0.5}
-        onChange={(v) => update({ strokeWidth: v })}
-        suffix="px"
-      />
-      {/* colour lives in the bottom-bar Ink swatches; checkboxes share one line */}
+      <SliderGrid>
+        <Slider
+          label="Stroke width"
+          value={obj.strokeWidth ?? 1}
+          min={0}
+          max={20}
+          step={0.5}
+          onChange={(v) => update({ strokeWidth: v })}
+          suffix="px"
+          resetValue={1}
+        />
+        <Slider
+          label="Opacity"
+          value={Math.round((obj.opacity ?? 1) * 100)}
+          min={5}
+          max={100}
+          onChange={(v) => update({ opacity: v / 100 })}
+          suffix="%"
+          resetValue={100}
+        />
+      </SliderGrid>
+      {isRect && (
+        <SliderGrid>
+          <Slider
+            label="Corner radius"
+            value={obj.rx ?? 0}
+            min={0}
+            max={120}
+            onChange={(v) => update({ rx: v, ry: v })}
+            suffix="px"
+            resetValue={0}
+          />
+        </SliderGrid>
+      )}
       <div className="grid grid-cols-2 gap-x-2">
         <Checkbox
           label="Solid fill"
@@ -42,27 +66,6 @@ export default function ShapeProperties({ obj }) {
           onChange={(on) => update({ strokeDashArray: on ? [12, 8] : null })}
         />
       </div>
-      <p className="mb-2 text-[12px] leading-relaxed" style={{ color: "var(--text-dim)" }}>
-        Colour: use the Ink swatches in the bottom bar.
-      </p>
-      {isRect && (
-        <Slider
-          label="Corner radius"
-          value={obj.rx ?? 0}
-          min={0}
-          max={120}
-          onChange={(v) => update({ rx: v, ry: v })}
-          suffix="px"
-        />
-      )}
-      <Slider
-        label="Opacity"
-        value={Math.round((obj.opacity ?? 1) * 100)}
-        min={5}
-        max={100}
-        onChange={(v) => update({ opacity: v / 100 })}
-        suffix="%"
-      />
     </div>
   );
 }

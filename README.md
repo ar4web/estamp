@@ -1,4 +1,4 @@
-# E-Stamp - Rubber Stamp Maker
+# estamp
 
 https://ar4web.github.io/estamp/
 

@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { APP_NAME } from "../config";
 import useStampStore from "../store/useStampStore";
 import { CANVAS_SIZE, initCanvas, styleSelection } from "../utils/canvas";
 import { preloadDefaults, restoreCustomFonts } from "../utils/fonts";
@@ -62,7 +63,7 @@ export default function useCanvas(elRef) {
       } else if (!designs.length) {
         await loadTemplate("classicRound", { silent: true });
         store.toast(
-          prefs.visited ? "Starter template loaded" : "Welcome to Stampcraft",
+          prefs.visited ? "Starter template loaded" : `Welcome to ${APP_NAME}`,
           "success"
         );
         store.setPulseTemplates(true);

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { util } from "fabric";
 import {
   ArrowDownToLine,
   ArrowUpToLine,
@@ -44,7 +45,8 @@ export default function ContextToolbar({ scrollRef }) {
       return;
     }
     const measure = () => {
-      if (!canvas.getActiveObject()) return setPos(null);
+      const active = canvas.getActiveObject();
+      if (!active) return setPos(null);
       const el = canvas.getElement();
       const host = scrollRef?.current;
       if (!el || !host) return;
@@ -53,16 +55,46 @@ export default function ContextToolbar({ scrollRef }) {
       const barH = 36;
       const gap = 8;
       const ruler = showRulers ? 18 : 0;
+      const vpt = canvas.viewportTransform || [zoom, 0, 0, zoom, 0, 0];
+
+      // Position above the selected object, not above the canvas centre.
+      let minX = 0;
+      let maxX = cRect.width;
+      let minY = 0;
+      try {
+        active.setCoords?.();
+        const points = active.getCoords().map((p) => util.transformPoint(p, vpt));
+        const xs = points.map((p) => p.x);
+        const ys = points.map((p) => p.y);
+        minX = Math.min(...xs);
+        maxX = Math.max(...xs);
+        minY = Math.min(...ys);
+      } catch {
+        /* fall back to the canvas centre if coords are unavailable */
+        minX = 0;
+        maxX = cRect.width;
+        minY = 0;
+      }
+      const centerX = (minX + maxX) / 2;
+      const rawLeft = cRect.left - hRect.left + centerX;
+      const halfBar = 180;
+      const maxLeft = Math.max(halfBar, hRect.width - halfBar);
       setPos({
-        left: cRect.left - hRect.left + cRect.width / 2,
-        top: cRect.top - hRect.top - barH - gap - ruler,
+        left: Math.min(maxLeft, Math.max(halfBar, rawLeft)),
+        top: Math.max(
+          ruler + 4,
+          cRect.top - hRect.top + minY - barH - gap - ruler
+        ),
       });
     };
     measure();
     const host = scrollRef?.current;
+    const canvasEvents = ["object:moving", "object:scaling", "object:rotating", "object:modified"];
+    canvasEvents.forEach((ev) => canvas.on(ev, measure));
     host?.addEventListener("scroll", measure);
     window.addEventListener("resize", measure);
     return () => {
+      canvasEvents.forEach((ev) => canvas.off(ev, measure));
       host?.removeEventListener("scroll", measure);
       window.removeEventListener("resize", measure);
     };

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import {
   Crosshair,
   Download,
@@ -29,15 +29,6 @@ const TABS = [
   { id: "export", label: "Export" },
 ];
 
-function kindLabel(kind) {
-  if (kind === "text" || kind === "arc") return "Text";
-  if (kind === "shape") return "Shape";
-  if (kind === "image" || kind === "textured") return "Image";
-  if (kind === "group") return "Group";
-  if (kind === "multi") return "Selection";
-  return "Properties";
-}
-
 export default function RightPanel() {
   const rightOpen = useStampStore((s) => s.rightOpen);
   const toggleRight = useStampStore((s) => s.toggleRight);
@@ -50,6 +41,12 @@ export default function RightPanel() {
   const focusSection = useStampStore((s) => s.focusSection);
   const saveCurrent = useStampStore((s) => s.saveCurrent);
   const kind = selectionKind(selected);
+  void selVersion;
+  void layerVersion;
+
+  const scrollPositions = useRef({});
+  const bodyRef = useRef(null);
+  const lastSelected = useRef(null);
 
   useEffect(() => {
     if (!focusSection) return;
@@ -58,13 +55,19 @@ export default function RightPanel() {
     else setInspectorTab("props");
   }, [focusSection, setInspectorTab]);
 
+  // Smart auto-switch: selecting a new layer brings Properties forward,
+  // while tab scroll positions are kept (restored in the layout effect).
   useEffect(() => {
-    if (!selected) return;
-    if (inspectorTab === "layers") return;
-    setInspectorTab("props");
-  }, [selVersion]);
+    if (selected && selected !== lastSelected.current) setInspectorTab("props");
+    lastSelected.current = selected;
+  }, [selected, setInspectorTab]);
 
-  void layerVersion;
+  useLayoutEffect(() => {
+    if (bodyRef.current) {
+      bodyRef.current.scrollTop = scrollPositions.current[inspectorTab] ?? 0;
+    }
+  }, [inspectorTab]);
+
   const layerCount = canvas ? canvas.getObjects().length : 0;
 
   const HeadBtn = ({ label, hint, onClick, disabled, danger, children }) => (
@@ -102,7 +105,7 @@ export default function RightPanel() {
       </div>
     </div>
   ) : (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-2">
       {(kind === "text" || kind === "arc") && <TextProperties obj={selected} kind={kind} />}
       {kind === "shape" && <ShapeProperties obj={selected} />}
       {(kind === "image" || kind === "textured") && <ImageProperties obj={selected} />}
@@ -112,7 +115,7 @@ export default function RightPanel() {
         </button>
       )}
       <div>
-        <div className="label mb-1.5 flex items-center gap-1.5">
+        <div className="label mb-1 flex items-center gap-1.5">
           <Crosshair size={11} /> Transform
         </div>
         <TransformBlock obj={selected} />
@@ -129,6 +132,8 @@ export default function RightPanel() {
       open={rightOpen}
       onClose={toggleRight}
       pad={false}
+      background="#191919"
+      className="inspector-panel"
       actions={
         <>
           <HeadBtn label="Delete" hint="Del" danger onClick={deleteSelection} disabled={!selected}>
@@ -143,26 +148,29 @@ export default function RightPanel() {
       <div className="insp-tabs" role="tablist" aria-label="Inspector">
         {TABS.map((t) => {
           const on = inspectorTab === t.id;
+          const label = t.id === "layers" && layerCount > 0 ? `Layers (${layerCount})` : t.label;
           return (
             <button
               key={t.id}
               type="button"
               role="tab"
               aria-selected={on}
+              aria-label={label}
               className={`insp-tab ${on ? "is-on" : ""}`}
               onClick={() => setInspectorTab(t.id)}
             >
-              {t.label}
-              {t.id === "layers" && layerCount > 0 ? (
-                <span className="tabular-nums" style={{ color: on ? "var(--accent)" : "var(--text-mute)" }}>
-                  {layerCount}
-                </span>
-              ) : null}
+              {label}
             </button>
           );
         })}
       </div>
-      <div className="scroll-thin min-h-0 flex-1 overflow-y-auto p-2.5">
+      <div
+        ref={bodyRef}
+        onScroll={(e) => {
+          scrollPositions.current[inspectorTab] = e.currentTarget.scrollTop;
+        }}
+        className="scroll-thin min-h-0 flex-1 overflow-y-auto p-2.5"
+      >
         {inspectorTab === "props" && properties}
         {inspectorTab === "layers" && <LayersPanel />}
         {inspectorTab === "export" && <ExportPanel />}

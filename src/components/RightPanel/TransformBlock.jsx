@@ -1,24 +1,11 @@
 import {
   AlignCenterHorizontal,
   AlignCenterVertical,
-  ArrowDownToLine,
-  ArrowUpToLine,
-  Copy,
   Crosshair,
-  RotateCcw,
-  RotateCw,
-  Trash2,
 } from "lucide-react";
 import useStampStore from "../../store/useStampStore";
-import { Slider } from "../ui";
-import {
-  alignSelection,
-  bringToFront,
-  deleteSelection,
-  duplicateSelection,
-  rotateSelection,
-  sendToBack,
-} from "../../utils/actions";
+import { Slider, SliderGrid } from "../ui";
+import { alignSelection } from "../../utils/actions";
 import Tooltip from "../Tooltip";
 
 export default function TransformBlock({ obj }) {
@@ -34,11 +21,11 @@ export default function TransformBlock({ obj }) {
     touch();
   };
 
-  const Act = ({ title, onClick, icon: Icon, danger }) => (
+  const Act = ({ title, onClick, icon: Icon }) => (
     <Tooltip label={title} side="top" delay={120}>
       <button
         type="button"
-        className={`btn btn-icon ${danger ? "btn-danger" : ""}`}
+        className="btn btn-icon"
         aria-label={title}
         onClick={onClick}
       >
@@ -49,55 +36,53 @@ export default function TransformBlock({ obj }) {
 
   return (
     <>
-      <div className="mb-2 grid grid-cols-2 gap-2">
-        <div className="min-w-0">
-          <span className="label mb-1 block">Align</span>
-          <div className="icon-row">
-            <Act title="Centre horizontally" icon={AlignCenterVertical} onClick={() => alignSelection("h")} />
-            <Act title="Centre vertically" icon={AlignCenterHorizontal} onClick={() => alignSelection("v")} />
-            <Act title="Centre both" icon={Crosshair} onClick={() => alignSelection("both")} />
-          </div>
-        </div>
-        <div className="min-w-0">
-          <span className="label mb-1 block">Rotate</span>
-          <div className="icon-row">
-            <Act title="Rotate -15" icon={RotateCcw} onClick={() => rotateSelection(-15)} />
-            <Act title="Rotate +15" icon={RotateCw} onClick={() => rotateSelection(15)} />
-          </div>
-        </div>
-      </div>
       <div className="mb-2">
-        <span className="label mb-1 block">Arrange</span>
+        <span className="label mb-1 block">Align</span>
         <div className="icon-row">
-          <Act title="Bring to front" icon={ArrowUpToLine} onClick={bringToFront} />
-          <Act title="Send to back" icon={ArrowDownToLine} onClick={sendToBack} />
-          <Act title="Duplicate" icon={Copy} onClick={duplicateSelection} />
-          <Act title="Delete" icon={Trash2} danger onClick={deleteSelection} />
+          <Act title="Centre horizontally" icon={AlignCenterVertical} onClick={() => alignSelection("h")} />
+          <Act title="Centre vertically" icon={AlignCenterHorizontal} onClick={() => alignSelection("v")} />
+          <Act title="Centre both" icon={Crosshair} onClick={() => alignSelection("both")} />
         </div>
       </div>
-      <Slider
-        label="Scale"
-        value={Math.round((obj.scaleX ?? 1) * 100)}
-        min={10}
-        max={400}
-        onChange={(v) => update({ scaleX: v / 100, scaleY: v / 100 })}
-        suffix="%"
-      />
-      <Slider
-        label="Angle"
-        value={Math.round(obj.angle ?? 0)}
-        min={-180}
-        max={180}
-        onChange={(v) => {
-          if (typeof obj.rotate === "function") obj.rotate(v);
-          else obj.set({ angle: v });
-          obj.setCoords();
-          canvas.requestRenderAll();
-          commit();
-          touch();
-        }}
-        suffix="°"
-      />
+
+      <SliderGrid>
+        <Slider
+          label="Scale"
+          value={Math.round((obj.scaleX ?? 1) * 100)}
+          min={10}
+          max={400}
+          onChange={(v) => update({ scaleX: v / 100, scaleY: v / 100 })}
+          suffix="%"
+          resetValue={100}
+          presets={[
+            { label: "50%", value: 50 },
+            { label: "100%", value: 100 },
+            { label: "200%", value: 200 },
+          ]}
+        />
+        <Slider
+          label="Angle"
+          value={Math.round(obj.angle ?? 0)}
+          min={-180}
+          max={180}
+          onChange={(v) => {
+            if (typeof obj.rotate === "function") obj.rotate(v);
+            else obj.set({ angle: v });
+            obj.setCoords();
+            canvas.requestRenderAll();
+            commit();
+            touch();
+          }}
+          suffix="°"
+          resetValue={0}
+          format={(v) => `${v > 0 ? "+" : ""}${v}`}
+          presets={[
+            { label: "0°", value: 0 },
+            { label: "90°", value: 90 },
+            { label: "180°", value: 180 },
+          ]}
+        />
+      </SliderGrid>
     </>
   );
 }

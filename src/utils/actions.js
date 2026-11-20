@@ -11,6 +11,7 @@ import {
   exportJPG,
   exportPNG,
   exportSVG,
+  findPrimaryTextLayer,
   nextId,
 } from "./canvas";
 import { getTemplate } from "../templates";
@@ -19,6 +20,15 @@ import { ensureFonts } from "./fonts";
 
 const S = () => useStampStore.getState();
 const C = () => useStampStore.getState().canvas;
+
+/** Give webfonts a final chance to settle before measuring arc glyphs. */
+async function waitForFonts() {
+  if (typeof document === "undefined" || !document.fonts?.ready) return;
+  await Promise.race([
+    document.fonts.ready,
+    new Promise((r) => setTimeout(r, 1200)),
+  ]);
+}
 
 export function addObject(obj, { select = true } = {}) {
   const canvas = C();
@@ -250,9 +260,17 @@ export async function loadTemplate(idOrTemplate, { silent = false } = {}) {
   const tpl =
     typeof idOrTemplate === "string" ? getTemplate(idOrTemplate) : idOrTemplate;
   await ensureFonts(templateFonts(tpl));
+  await waitForFonts();
   history.lock();
   applyTemplate(canvas, tpl);
   history.unlock();
+
+  // Figma/Canva behaviour: a template opens with its main text ready to edit.
+  const primary = findPrimaryTextLayer(canvas);
+  if (primary) {
+    canvas.setActiveObject(primary);
+    canvas.requestRenderAll();
+  }
   S().commit();
   S().syncSelection();
   S().setDesignName(tpl.name);
@@ -332,7 +350,7 @@ export async function doExportJPG(multiplier = 3, options = {}) {
 }
 
 /* ------------------------------------------------------------------ */
-/* auto stamp generator — full design from any-language text           */
+/* preset spec helpers                                                 */
 /* ------------------------------------------------------------------ */
 
 import { CANVAS_SIZE as SIZE, createSpecObject as spec } from "./canvas";
@@ -341,68 +359,6 @@ const fit = (text, base, min, max) => {
   const len = Math.max(4, String(text || "").length);
   return Math.max(min, Math.min(max, Math.round(base / len) * 10));
 };
-
-/**
- * Builds a complete, balanced stamp from user text. Works in every
- * script — Arabic arcs stay joined via the shaping engine.
- */
-export async function generateAutoStamp({ name, center, bottom, shape, ink, font, logo }) {
-  const canvas = C();
-  if (!canvas) return;
-  const CC = SIZE / 2;
-  const specs = [];
-
-  if (shape === "rect") {
-    specs.push(
-      { type: "rect", w: 500, h: 250, rx: 6, cx: CC, cy: CC, stroke: ink, strokeWidth: 8 },
-      { type: "rect", w: 472, h: 222, rx: 2, cx: CC, cy: CC, stroke: ink, strokeWidth: 2 }
-    );
-    if (name)
-      specs.push({ type: "text", text: name, fontSize: fit(name, 260, 22, 44), fontFamily: font, fontWeight: "700", fill: ink, cx: CC, cy: CC - 62, w: 440, charSpacing: 0 });
-    specs.push({ type: "line", x1: CC - 180, y1: CC - 22, x2: CC + 180, y2: CC - 22, stroke: ink, strokeWidth: 2.5 });
-    if (center)
-      specs.push({ type: "text", text: center, fontSize: fit(center, 400, 30, 64), fontFamily: font, fontWeight: "900", fill: ink, cx: CC, cy: CC + 22, w: 440, charSpacing: 0 });
-    if (bottom)
-      specs.push({ type: "text", text: bottom, fontSize: fit(bottom, 190, 15, 24), fontFamily: font, fontWeight: "400", fill: ink, cx: CC, cy: CC + 82, w: 440, charSpacing: 0 });
-  } else {
-    specs.push(
-      { type: "circle", r: 250, cx: CC, cy: CC, stroke: ink, strokeWidth: 8 },
-      { type: "circle", r: 228, cx: CC, cy: CC, stroke: ink, strokeWidth: 2.5 }
-    );
-    if (name)
-      specs.push({ type: "arc", text: name, radius: 200, position: "top", fontSize: fit(name, 300, 22, 40), fontFamily: font, fontWeight: "700", fill: ink, letterSpacing: 2, cx: CC, cy: CC });
-    if (bottom)
-      specs.push({ type: "arc", text: bottom, radius: 200, position: "bottom", fontSize: fit(bottom, 230, 18, 30), fontFamily: font, fontWeight: "700", fill: ink, letterSpacing: 3, cx: CC, cy: CC });
-    specs.push(
-      { type: "star", outer: 16, inner: 7, points: 5, cx: CC - 150, cy: CC, fill: ink, stroke: ink, strokeWidth: 0 },
-      { type: "star", outer: 16, inner: 7, points: 5, cx: CC + 150, cy: CC, fill: ink, stroke: ink, strokeWidth: 0 }
-    );
-    if (center)
-      specs.push({ type: "text", text: center, fontSize: fit(center, 420, 30, 62), fontFamily: font, fontWeight: "900", fill: ink, cx: CC, cy: CC, w: 360, charSpacing: 0 });
-  }
-
-  history.lock();
-  canvas.remove(...canvas.getObjects());
-  specs.forEach((sp) => canvas.add(spec(sp)));
-  if (logo) {
-    try {
-      const blob = await (await fetch(logo)).blob();
-      const file = new File([blob], "logo.png", { type: blob.type || "image/png" });
-      const obj = await addImageFromFile(canvas, file);
-      if (obj.type === "image") await applyStampFilter(canvas, obj, true);
-      await clipObjectToRing(canvas, obj);
-    } catch {
-      /* logo optional */
-    }
-  }
-  canvas.discardActiveObject();
-  canvas.requestRenderAll();
-  history.unlock();
-  S().commit();
-  S().syncSelection();
-  S().setDesignName(name || center || "Generated stamp");
-  S().toast("Stamp generated — every layer stays editable", "success");
-}
 
 export function stampLookSpecs(text, look, ink, font) {
   const CC = SIZE / 2;

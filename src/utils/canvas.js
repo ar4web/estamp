@@ -252,7 +252,7 @@ export function makeArcText(options = {}) {
 }
 
 /** Rebuilds an arc group in place preserving transform + z-index. */
-export function rebuildArc(canvas, group, patch) {
+export function rebuildArc(canvas, group, patch, { select = true } = {}) {
   const meta = { ...(group.stampMeta || {}), ...patch };
   const index = canvas.getObjects().indexOf(group);
   const next = makeArcText({
@@ -274,9 +274,25 @@ export function rebuildArc(canvas, group, patch) {
   next.visible = group.visible;
   canvas.remove(group);
   canvas.insertAt(index < 0 ? canvas.getObjects().length : index, next);
-  canvas.setActiveObject(next);
+  if (select) canvas.setActiveObject(next);
   canvas.requestRenderAll();
   return next;
+}
+
+/**
+ * Recalculate every arc path after fonts are ready. Fabric measures each
+ * glyph at construction time; rebuilding once the real webfont is available
+ * keeps the letters on the curve instead of collapsing into the centre.
+ */
+export function refreshArcText(canvas) {
+  canvas.getObjects().slice().forEach((obj) => {
+    if (obj?.stampMeta?.kind === "arc") {
+      rebuildArc(canvas, obj, {}, { select: false });
+    }
+  });
+  if (typeof canvas.discardActiveObject === "function") canvas.discardActiveObject();
+  if (typeof canvas.requestRenderAll === "function") canvas.requestRenderAll();
+  return canvas;
 }
 
 /* ------------------------------------------------------------------ */
@@ -462,6 +478,8 @@ export function applyTemplate(canvas, template) {
   canvas.remove(...canvas.getObjects());
   templateSpecs(template).forEach((s) => canvas.add(createSpecObject(s)));
   canvas.discardActiveObject();
+  // Second pass with loaded fonts: arc glyph widths/path are now correct.
+  refreshArcText(canvas);
   canvas.requestRenderAll();
   return canvas;
 }
@@ -477,6 +495,7 @@ export async function renderTemplateThumb(template, size = 150, ink = "#111") {
     backgroundColor: undefined,
   });
   specs.forEach((s) => sc.add(createSpecObject(s)));
+  refreshArcText(sc);
   const scale = size / CANVAS_SIZE;
   sc.setZoom(scale);
   sc.renderAll();
@@ -895,6 +914,35 @@ export function selectionKind(obj) {
   if (["textbox", "i-text", "text"].includes(obj.type)) return "text";
   if (obj.type === "group") return "group";
   return "shape";
+}
+
+/** Picks the main editable text layer of a freshly loaded template. */
+export function findPrimaryTextLayer(canvas) {
+  if (!canvas) return null;
+  const center = CANVAS_SIZE / 2;
+  let best = null;
+  let fallback = null;
+  let bestScore = -Infinity;
+  canvas.getObjects().forEach((obj) => {
+    if (!fallback && obj.visible !== false && !obj.lockedLayer && obj.selectable !== false && obj.evented !== false) {
+      fallback = obj;
+    }
+    const kind = selectionKind(obj);
+    if (kind !== "text" && kind !== "arc") return;
+    if (obj.lockedLayer || obj.visible === false || obj.selectable === false || obj.evented === false) return;
+    const fontSize = Number(kind === "arc" ? obj.stampMeta?.fontSize : obj.fontSize) || 0;
+    const x = Number(obj.left) || center;
+    const y = Number(obj.top) || center;
+    const distance = Math.hypot(x - center, y - center);
+    const straightBonus = kind === "text" ? 1000 : 0;
+    const fieldPenalty = obj.stampMeta?.field ? 250 : 0;
+    const score = straightBonus + fontSize * 12 - distance - fieldPenalty;
+    if (score > bestScore) {
+      bestScore = score;
+      best = obj;
+    }
+  });
+  return best || fallback;
 }
 
 /* ------------------------------------------------------------------ */

@@ -19,7 +19,7 @@ const memory = new Map();
 
 function detectStorage() {
   try {
-    const test = "__stampcraft_test__";
+    const test = "__estamp_test__";
     window.localStorage.setItem(test, "1");
     window.localStorage.removeItem(test);
     return window.localStorage;

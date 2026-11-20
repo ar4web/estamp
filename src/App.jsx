@@ -25,20 +25,24 @@ function MobileBar() {
       <button
         type="button"
         className="btn btn-ghost flex-1"
+        aria-label="Tools"
+        title="Tools"
         aria-pressed={leftOpen}
         onClick={toggleLeft}
         style={leftOpen ? { color: "var(--accent)" } : undefined}
       >
-        <Wrench size={16} /> Tools
+        <Wrench size={16} aria-hidden />
       </button>
       <button
         type="button"
         className="btn btn-ghost flex-1"
+        aria-label="Properties"
+        title="Properties"
         aria-pressed={rightOpen}
         onClick={toggleRight}
         style={rightOpen ? { color: "var(--accent)" } : undefined}
       >
-        <Sliders size={16} /> Properties
+        <Sliders size={16} aria-hidden />
       </button>
     </nav>
   );

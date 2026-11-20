@@ -1,210 +1,255 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   Bookmark,
-  ChevronLeft,
   Flower2,
-  FolderOpen,
   Image as ImageIcon,
   LayoutGrid,
   Scan,
   Type,
-  Wand2,
+  X,
 } from "lucide-react";
 import useStampStore from "../../store/useStampStore";
+import { selectionKind } from "../../utils/canvas";
 import { useIsMobile } from "../DraggablePanel";
 import Tooltip from "../Tooltip";
 import TextTool from "./TextTool";
-import AutoDesignTool from "./AutoDesignTool";
 import ImageTool from "./ImageTool";
-import SurfaceTool from "./SurfaceTool";
 import TemplateGallery from "./TemplateGallery";
 import OrnamentTool from "./OrnamentTool";
 import BorderTool from "./BorderTool";
 import ClipTool from "./ClipTool";
 
 const SECTIONS = [
-  { id: "template", label: "Templates", hint: "Start from a layout", icon: LayoutGrid, Component: TemplateGallery },
-  { id: "text", label: "Text", hint: "Words, marks, dates", icon: Type, Component: TextTool },
+  { id: "template", label: "Templates", hint: "All layouts & presets", icon: LayoutGrid, Component: TemplateGallery },
+  { id: "text", label: "Text", hint: "Type, fonts, phrases", icon: Type, Component: TextTool },
   { id: "border", label: "Frame", hint: "Shape, align, distress", icon: Scan, Component: BorderTool },
   { id: "ornament", label: "Ornaments", hint: "Stars, seals, flourishes", icon: Flower2, Component: OrnamentTool },
   { id: "image", label: "Logo", hint: "Drop, knock out, vectorize", icon: ImageIcon, Component: ImageTool },
   { id: "clip", label: "Clips", hint: "Reuse motifs", icon: Bookmark, Component: ClipTool },
-  { id: "auto", label: "Auto Design", hint: "Build a full stamp", icon: Wand2, Component: AutoDesignTool },
 ];
 
 export default function LeftSidebar() {
   const pulse = useStampStore((s) => s.pulseTemplates);
+  const selected = useStampStore((s) => s.selected);
   const leftOpen = useStampStore((s) => s.leftOpen);
   const toggleLeft = useStampStore((s) => s.toggleLeft);
-  const openModal = useStampStore((s) => s.openModal);
   const mobile = useIsMobile();
 
   const [active, setActive] = useState("template");
-  const [hovering, setHovering] = useState(false);
-  const [pinned, setPinned] = useState(true);
+  const [desktopOpen, setDesktopOpen] = useState(false);
+  const [pinned, setPinned] = useState(false);
   const closeTimer = useRef(null);
+  const shellRef = useRef(null);
+  const scrollRef = useRef(null);
+  const scrollPositions = useRef({});
+  const lastSelected = useRef(null);
 
-  const openPanel = pinned || hovering;
+  const flyoutOpen = mobile ? leftOpen : desktopOpen;
+
+  const captureScroll = useCallback(() => {
+    if (scrollRef.current) scrollPositions.current[active] = scrollRef.current.scrollTop;
+  }, [active]);
+
+  const showFlyout = useCallback(() => {
+    clearTimeout(closeTimer.current);
+    if (mobile) {
+      if (!leftOpen) toggleLeft();
+    } else {
+      setDesktopOpen(true);
+    }
+  }, [mobile, leftOpen, toggleLeft]);
+
+  const hideFlyout = useCallback(() => {
+    captureScroll();
+    clearTimeout(closeTimer.current);
+    if (mobile) {
+      if (leftOpen) toggleLeft();
+    } else {
+      setDesktopOpen(false);
+      setPinned(false);
+    }
+  }, [captureScroll, mobile, leftOpen, toggleLeft]);
+
+  const activate = useCallback(
+    (id, pin = false) => {
+      clearTimeout(closeTimer.current);
+      captureScroll();
+      setActive(id);
+      showFlyout();
+      if (pin && !mobile) setPinned(true);
+    },
+    [captureScroll, showFlyout, mobile]
+  );
+
+  // Each tool remembers its own scroll position, including smart selection changes.
+  useLayoutEffect(() => {
+    if (!flyoutOpen || !scrollRef.current) return;
+    scrollRef.current.scrollTop = scrollPositions.current[active] ?? 0;
+  }, [active, flyoutOpen]);
+
+  // Close the temporary flyout on outside interaction or Escape.
+  useEffect(() => {
+    if (!flyoutOpen) return;
+    const onDown = (e) => {
+      if (shellRef.current && !shellRef.current.contains(e.target)) hideFlyout();
+    };
+    const onKey = (e) => {
+      if (e.key === "Escape") hideFlyout();
+    };
+    document.addEventListener("pointerdown", onDown, true);
+    document.addEventListener("keydown", onKey, true);
+    return () => {
+      document.removeEventListener("pointerdown", onDown, true);
+      document.removeEventListener("keydown", onKey, true);
+    };
+  }, [flyoutOpen, hideFlyout]);
 
   useEffect(() => () => clearTimeout(closeTimer.current), []);
+  useEffect(() => {
+    if (mobile) {
+      setDesktopOpen(false);
+      setPinned(false);
+    }
+  }, [mobile]);
 
-  const enter = () => {
+  // Smart tool focus: selecting a layer highlights the matching tool without
+  // stealing the user's place in another tool's scroll position.
+  useEffect(() => {
+    if (!selected || selected === lastSelected.current) {
+      lastSelected.current = selected;
+      return;
+    }
+    lastSelected.current = selected;
+    const k = selectionKind(selected);
+    const id =
+      k === "text" || k === "arc" ? "text"
+      : k === "shape" || k === "group" ? "border"
+      : k === "image" || k === "textured" ? "image"
+      : k === "multi" ? "clip"
+      : null;
+    if (id && id !== active) {
+      captureScroll();
+      setActive(id);
+    }
+  }, [selected, active, captureScroll]);
+
+  const cancelClose = () => clearTimeout(closeTimer.current);
+  const scheduleClose = () => {
+    if (mobile || pinned || !desktopOpen) return;
     clearTimeout(closeTimer.current);
-    setHovering(true);
-  };
-  const collapse = () => {
-    clearTimeout(closeTimer.current);
-    setPinned(false);
-    setHovering(false);
-  };
-  const leave = () => {
-    clearTimeout(closeTimer.current);
-    closeTimer.current = setTimeout(() => setHovering(false), 180);
+    closeTimer.current = setTimeout(() => setDesktopOpen(false), 220);
   };
 
   const Current = SECTIONS.find((s) => s.id === active)?.Component || TextTool;
 
+  const toolButton = (s, { mobileMode = false } = {}) => {
+    const on = active === s.id;
+    return (
+      <Tooltip
+        key={s.id}
+        label={s.label}
+        hint={s.hint}
+        side={mobileMode ? "top" : "right"}
+        className={mobileMode ? "shrink-0" : "w-full"}
+      >
+        <button
+          type="button"
+          className={`tool-rail-btn ${on ? "is-on" : ""} ${pulse && s.id === "template" ? "pulse-hint" : ""}`}
+          aria-label={s.label}
+          title={s.label}
+          aria-selected={on}
+          aria-expanded={on && flyoutOpen}
+          onMouseEnter={() => !mobileMode && activate(s.id)}
+          onFocus={() => !mobileMode && activate(s.id)}
+          onClick={() => {
+            if (mobileMode) {
+              if (flyoutOpen && active === s.id) hideFlyout();
+              else activate(s.id, true);
+            } else if (desktopOpen && pinned && active === s.id) {
+              hideFlyout();
+            } else {
+              activate(s.id, true);
+            }
+          }}
+        >
+          <s.icon size={16} strokeWidth={1.75} aria-hidden />
+        </button>
+      </Tooltip>
+    );
+  };
+
   if (mobile) {
     return (
       <>
-        {leftOpen && <div className="fixed inset-0 z-[49] bg-black/50" onClick={toggleLeft} />}
+        {leftOpen && <div className="tool-mobile-overlay" onClick={hideFlyout} aria-hidden />}
         <aside
+          ref={shellRef}
           aria-label="Insert tools"
-          className="fixed inset-x-0 bottom-0 z-[50] flex h-[70vh] flex-col border-t shadow-2xl"
-          style={{
-            background: "var(--bg-panel)",
-            borderColor: "var(--border)",
-            transform: leftOpen ? "translateY(0)" : "translateY(103%)",
-            transition: "transform .2s ease",
-            visibility: leftOpen ? "visible" : "hidden",
-          }}
+          className={`tool-mobile-sheet ${leftOpen ? "is-open" : ""}`}
         >
-          <div className="flex shrink-0 overflow-x-auto border-b scroll-thin" style={{ borderColor: "var(--border)" }}>
-            {SECTIONS.map((s) => (
-              <button
-                key={s.id}
-                aria-selected={active === s.id}
-                aria-label={s.label}
-                title={s.label}
-                onClick={() => setActive(s.id)}
-                className="rail-btn !h-11 !w-12 shrink-0 !border-l-0 !border-b-2"
-                style={
-                  active === s.id
-                    ? { borderBottomColor: "var(--accent)", color: "var(--accent)" }
-                    : { borderBottomColor: "transparent" }
-                }
-              >
-                <s.icon size={16} strokeWidth={1.75} />
-              </button>
-            ))}
-          </div>
-          <div className="scroll-thin flex-1 overflow-y-auto p-2.5">
-            <Current />
-          </div>
-          <div className="shrink-0 border-t px-2.5 py-2" style={{ borderColor: "var(--border-soft)" }}>
+          <div className="tool-mobile-rail" role="toolbar" aria-label="Insert tools">
+            {SECTIONS.map((s) => toolButton(s, { mobileMode: true }))}
             <button
               type="button"
-              className="btn w-full mb-2"
-              aria-label="My Stamps"
-              onClick={() => openModal("saveload")}
+              className="tool-mobile-close"
+              aria-label="Close tools"
+              title="Close tools"
+              onClick={hideFlyout}
             >
-              <FolderOpen size={14} /> My Stamps
+              <X size={16} aria-hidden />
             </button>
-            <SurfaceTool />
           </div>
+          {leftOpen && (
+            <div
+              ref={scrollRef}
+              className="tool-mobile-body scroll-thin"
+              onScroll={(e) => { scrollPositions.current[active] = e.currentTarget.scrollTop; }}
+            >
+              <Current />
+            </div>
+          )}
         </aside>
       </>
     );
   }
 
   return (
-    <div className="relative z-30 flex h-full shrink-0" onMouseEnter={enter} onMouseLeave={leave}>
-      <nav
-        aria-label="Insert tools"
-        className="flex h-full shrink-0 flex-col border-r"
-        style={{
-          width: "var(--rail-w)",
-          background: "var(--bg-panel)",
-          borderColor: "var(--border)",
-        }}
-      >
-        <div className="scroll-thin flex min-h-0 flex-1 flex-col overflow-y-auto">
-        {SECTIONS.map((s, i) => {
-          const on = active === s.id;
-          const prev = SECTIONS[i - 1];
-          return (
-            <div key={s.id} className="w-full">
-              {s.id === "auto" && prev?.id !== "auto" && <div className="rail-gap" />}
-              <Tooltip label={s.label} hint={s.hint} side="right" className="w-full">
-                <button
-                  aria-selected={on && openPanel}
-                  aria-expanded={on && openPanel}
-                  aria-label={s.label}
-                  title={s.label}
-                  onClick={() => {
-                    if (active === s.id && openPanel) collapse();
-                    else {
-                      setActive(s.id);
-                      setPinned(true);
-                    }
-                  }}
-                  className={`rail-btn ${pulse && s.id === "template" ? "pulse-hint" : ""}`}
-                >
-                  <s.icon size={16} strokeWidth={1.75} />
-                </button>
-              </Tooltip>
-            </div>
-          );
-        })}
-        </div>
-        <div className="mt-auto flex w-full flex-col" style={{ borderTop: "1px solid var(--border-soft)" }}>
-          <Tooltip label="My Stamps" hint="Library · import .stamp" shortcut="Ctrl+S" side="right" className="w-full">
-            <button
-              type="button"
-              className="rail-btn"
-              aria-label="My Stamps"
-              title="My Stamps"
-              onClick={() => openModal("saveload")}
-            >
-              <FolderOpen size={16} />
-            </button>
-          </Tooltip>
-          <SurfaceTool compact />
+    <div
+      ref={shellRef}
+      className="tool-rail-shell"
+      onMouseEnter={cancelClose}
+      onMouseLeave={scheduleClose}
+    >
+      <nav className="tool-rail" aria-label="Insert tools" role="toolbar">
+        <div className="tool-rail-list">
+          {SECTIONS.map((s) => toolButton(s))}
         </div>
       </nav>
 
-      <div
-        className="h-full overflow-hidden border-r"
-        style={{
-          width: openPanel ? "var(--drawer-w)" : 0,
-          opacity: openPanel ? 1 : 0,
-          borderColor: openPanel ? "var(--border)" : "transparent",
-          background: "var(--bg-panel)",
-          transition: "width .18s ease, opacity .14s ease",
-        }}
-      >
-        <div className="flex h-full flex-col" style={{ width: "var(--drawer-w)" }}>
-          <div
-            className="flex h-9 shrink-0 items-center gap-2 border-b px-2.5"
-            style={{ borderColor: "var(--border-soft)" }}
-          >
-            <h2 className="flex-1 truncate text-[10px] font-semibold uppercase tracking-[0.1em]">
-              {SECTIONS.find((s) => s.id === active)?.label}
-            </h2>
-            <button
-              className="btn btn-ghost btn-icon h-7 w-7"
-              title="Collapse panel"
-              aria-label="Collapse panel"
-              onClick={collapse}
-            >
-              <ChevronLeft size={14} />
-            </button>
+      {flyoutOpen && (
+        <div className="tool-flyout is-open" onMouseEnter={cancelClose}>
+          <div className="tool-flyout-bar">
+            <Tooltip label="Close tools" side="left">
+              <button
+                type="button"
+                className="tool-flyout-close"
+                aria-label="Close tools"
+                title="Close tools"
+                onClick={hideFlyout}
+              >
+                <X size={14} aria-hidden />
+              </button>
+            </Tooltip>
           </div>
-          <div className="scroll-thin flex-1 overflow-y-auto px-2.5 py-2">
+          <div
+            ref={scrollRef}
+            className="tool-flyout-body scroll-thin"
+            onScroll={(e) => { scrollPositions.current[active] = e.currentTarget.scrollTop; }}
+          >
             <Current />
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

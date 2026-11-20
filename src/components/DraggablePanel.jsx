@@ -24,6 +24,9 @@ export default function DraggablePanel({
   onClose,
   actions,
   children,
+  pad = true,
+  background,
+  className = "",
 }) {
   const mobile = useIsMobile();
   const hoverTimer = useRef(null);
@@ -95,7 +98,11 @@ export default function DraggablePanel({
     </div>
   );
 
-  const body = <div className="scroll-thin flex-1 overflow-y-auto p-3.5">{children}</div>;
+  const body = pad ? (
+    <div className="scroll-thin flex-1 overflow-y-auto p-3.5">{children}</div>
+  ) : (
+    <div className="flex min-h-0 flex-1 flex-col">{children}</div>
+  );
 
   if (mobile) {
     return (
@@ -106,9 +113,9 @@ export default function DraggablePanel({
         <aside
           aria-label={title}
           aria-hidden={!open}
-          className="fixed inset-x-0 bottom-0 z-[50] flex h-[70vh] flex-col border-t shadow-2xl"
+          className={`fixed inset-x-0 bottom-0 z-[50] flex h-[70vh] flex-col border-t shadow-2xl ${className}`}
           style={{
-            background: "var(--bg-panel)",
+            background: background || "var(--bg-panel)",
             borderColor: "var(--border)",
             transform: open ? "translateY(0)" : "translateY(103%)",
             transition: "transform 0.2s ease",
@@ -148,8 +155,8 @@ export default function DraggablePanel({
     <div className="relative h-full shrink-0" style={{ width: dockWidth }}>
       <aside
         aria-label={title}
-        className="flex h-full flex-col overflow-hidden border"
-        style={{ background: "var(--bg-panel)", borderColor: "var(--border)" }}
+        className={`flex h-full flex-col overflow-hidden border ${className}`}
+        style={{ background: background || "var(--bg-panel)", borderColor: "var(--border)" }}
       >
         {header}
         {body}

@@ -4,6 +4,8 @@ import { TEMPLATES, TEMPLATE_CATEGORIES } from "../../templates";
 import { downloadURL, renderTemplateThumb } from "../../utils/canvas";
 import { loadTemplate } from "../../utils/actions";
 import useStampStore from "../../store/useStampStore";
+import PresetTemplates from "./PresetTemplates";
+import CompactHead from "./CompactHead";
 
 const cache = new Map();
 
@@ -44,6 +46,7 @@ export function useTemplateThumbs(list = TEMPLATES) {
   return thumbs;
 }
 
+/** Compact card: three of these fit on one row of the 300px drawer. */
 export function TemplateCard({ tpl, thumb, onClick, large }) {
   const toast = useStampStore((s) => s.toast);
 
@@ -67,11 +70,12 @@ export function TemplateCard({ tpl, thumb, onClick, large }) {
         type="button"
         onClick={onClick}
         aria-label={`Use ${tpl.name} template`}
+        title={tpl.name}
         className="block w-full"
       >
         <span
-          className="checkerboard grid aspect-square w-full place-items-center p-2"
-          style={{ backgroundSize: "12px 12px" }}
+          className="checkerboard grid aspect-square w-full place-items-center p-1"
+          style={{ backgroundSize: "10px 10px" }}
         >
           {thumb ? (
             <img
@@ -82,7 +86,7 @@ export function TemplateCard({ tpl, thumb, onClick, large }) {
             />
           ) : (
             <span
-              className="h-3 w-3 animate-pulse"
+              className="h-2.5 w-2.5 animate-pulse"
               style={{ background: "var(--border)" }}
             />
           )}
@@ -95,35 +99,38 @@ export function TemplateCard({ tpl, thumb, onClick, large }) {
         onClick={quickExport}
         title="Download this template as PNG"
         aria-label={`Download ${tpl.name} as PNG`}
-        className="absolute right-1 top-1 grid h-6 w-6 place-items-center border opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100"
+        className="absolute right-0.5 top-0.5 grid h-5 w-5 place-items-center border opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100"
         style={{
           background: "var(--bg-panel)",
           borderColor: "var(--border)",
           color: "var(--text-dim)",
         }}
       >
-        <Download size={12} />
+        <Download size={10} />
       </button>
 
       {tpl.logo && (
         <span
-          className="absolute left-1 top-1 flex items-center gap-0.5 border px-1 py-0.5 text-[10px] font-semibold uppercase"
+          className="absolute left-0.5 top-0.5 flex items-center gap-0.5 border px-0.5 text-[8px] font-semibold uppercase"
           style={{
             background: "var(--bg-panel)",
             borderColor: "var(--accent)",
             color: "var(--accent)",
           }}
         >
-          <ImageIcon size={8} /> Logo
+          <ImageIcon size={7} /> Logo
         </span>
       )}
 
-      <div className="border-t px-2 py-1.5" style={{ borderColor: "var(--border-soft)" }}>
-        <p className={`truncate font-semibold ${large ? "text-[12px]" : "text-[11px]"}`}>
+      <div className="border-t px-1 py-1" style={{ borderColor: "var(--border-soft)" }}>
+        <p
+          className={`truncate font-semibold ${large ? "text-[11px]" : "text-[9px]"}`}
+          title={tpl.name}
+        >
           {tpl.name}
         </p>
         {large && (
-          <p className="truncate text-[11px]" style={{ color: "var(--text-dim)" }}>
+          <p className="truncate text-[10px]" style={{ color: "var(--text-dim)" }}>
             {tpl.tags?.join(" · ")}
           </p>
         )}
@@ -135,21 +142,16 @@ export function TemplateCard({ tpl, thumb, onClick, large }) {
 export default function TemplateGallery() {
   const thumbs = useTemplateThumbs();
 
-  // Grouped sections: Round -> Square -> Oval -> Logo -> Arabic
+  // Compact grouped sections — three templates per row.
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       {TEMPLATE_CATEGORIES.map((cat) => {
         const items = TEMPLATES.filter((t) => t.cat === cat);
         if (!items.length) return null;
         return (
           <section key={cat}>
-            <h3
-              className="mb-1.5 border-b pb-1 text-[11px] font-semibold uppercase tracking-[0.08em]"
-              style={{ color: "var(--text-dim)", borderColor: "var(--border-soft)" }}
-            >
-              {cat}
-            </h3>
-            <div className="grid grid-cols-2 gap-2">
+            <CompactHead title={cat} />
+            <div className="grid grid-cols-3 gap-1.5">
               {items.map((tpl) => (
                 <TemplateCard
                   key={tpl.id}
@@ -162,6 +164,9 @@ export default function TemplateGallery() {
           </section>
         );
       })}
+
+      {/* Additional stamp presets */}
+      <PresetTemplates />
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AlignCenter,
   AlignLeft,
@@ -8,6 +9,7 @@ import {
   FlipVertical,
   Italic,
   Spline,
+  ChevronDown,
   Type,
   Underline,
 } from "lucide-react";
@@ -15,9 +17,10 @@ import useStampStore from "../../store/useStampStore";
 import { rebuildArc, toggleTextCurve } from "../../utils/canvas";
 import { DATE_FORMATS, fieldText } from "../../utils/fields";
 import { isRTL } from "../../utils/arabic";
-import { fabricFamily, plainFamily, refreshTextObject } from "../../utils/fonts";
-import { Row, Slider } from "../ui";
+import { FONT_SETS, fabricFamily, getCustomFonts, loadFont, plainFamily, refreshTextObject } from "../../utils/fonts";
+import { Row, Slider, SliderGrid } from "../ui";
 import Tooltip from "../Tooltip";
+import FontPicker from "../FontPicker";
 
 function IconBtn({ label, on, onClick, children, danger }) {
   return (
@@ -35,10 +38,37 @@ function IconBtn({ label, on, onClick, children, danger }) {
   );
 }
 
+const WEIGHTS = [
+  { v: "400", label: "Rg" },
+  { v: "700", label: "Bd" },
+  { v: "900", label: "Blk" },
+];
+
 export default function TextProperties({ obj, kind }) {
   const canvas = useStampStore((s) => s.canvas);
   const commit = useStampStore((s) => s.commit);
   const touch = useStampStore((s) => s.touchSelection);
+  const [fontOpen, setFontOpen] = useState(false);
+  const fontControlRef = useRef(null);
+  const fonts = useMemo(
+    () => [...getCustomFonts(), ...FONT_SETS.flatMap((g) => g.fonts)],
+    []
+  );
+
+  useEffect(() => setFontOpen(false), [obj]);
+  useEffect(() => {
+    if (!fontOpen) return;
+    const onDown = (e) => {
+      if (!fontControlRef.current?.contains(e.target)) setFontOpen(false);
+    };
+    const onKey = (e) => e.key === "Escape" && setFontOpen(false);
+    document.addEventListener("pointerdown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [fontOpen]);
   const isArc = kind === "arc";
   const meta = obj.stampMeta || {};
   const rtl = isRTL(isArc ? meta.text : obj.text);
@@ -66,7 +96,15 @@ export default function TextProperties({ obj, kind }) {
   const val = (key, fallback) => (isArc ? meta[key] ?? fallback : obj[key] ?? fallback);
   const family = plainFamily(val("fontFamily", "Oswald"));
   const weight = String(val("fontWeight", "400"));
+  const weightLabel = ({ 400: "Rg", 700: "Bd", 900: "Blk" })[weight] || weight;
   const currentText = isArc ? meta.text || "" : obj.text || "";
+  const preview = String(currentText || family).trim().slice(0, 18) || "Aa";
+
+  const applyFont = async (nextFamily) => {
+    await loadFont(nextFamily);
+    update({ fontFamily: nextFamily });
+    setFontOpen(false);
+  };
 
   const applyCase = (mode) => {
     const src = currentText;
@@ -99,7 +137,79 @@ export default function TextProperties({ obj, kind }) {
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
+      <div className="font-control" ref={fontControlRef}>
+        <button
+          type="button"
+          className="font-trigger"
+          title="Open font list"
+          aria-label={`Font ${family}, weight ${weightLabel}. Open font list`}
+          aria-haspopup="listbox"
+          aria-expanded={fontOpen}
+          onClick={() => setFontOpen((v) => !v)}
+        >
+          <Type size={11} aria-hidden />
+          <span className="font-trigger-name">{family}</span>
+          <span
+            className="font-trigger-preview"
+            dir="auto"
+            aria-hidden="true"
+            style={{ fontFamily: fabricFamily(family), fontWeight: weight }}
+          >
+            {preview}
+          </span>
+          <ChevronDown size={11} aria-hidden />
+        </button>
+        {fontOpen && (
+          <div className="font-popover" role="dialog" aria-label="Font family">
+            <FontPicker
+              fonts={fonts}
+              value={family}
+              onSelect={applyFont}
+              previewText={currentText}
+              weight={weight}
+            />
+          </div>
+        )}
+        <div className="weight-grid compact" aria-label="Font weight">
+          {WEIGHTS.map((w) => (
+            <button
+              key={w.v}
+              type="button"
+              className={`btn text-[10px] ${weight === w.v ? "btn-on" : ""}`}
+              aria-pressed={weight === w.v}
+              onClick={() => update({ fontWeight: w.v })}
+            >
+              {w.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <Row label="Content">
+        <textarea
+          className="field resize-none"
+          rows={2}
+          aria-label="Selected text content"
+          dir={rtl ? "rtl" : "ltr"}
+          style={{ fontFamily: fabricFamily(family), fontWeight: weight, fontSize: 12, lineHeight: 1.4 }}
+          value={currentText}
+          onChange={(e) => update({ text: e.target.value }, { silent: true })}
+          onBlur={() => commit()}
+        />
+        <div className="icon-grid mt-1.5">
+          <IconBtn label="Uppercase" onClick={() => applyCase("upper")}>
+            <span className="text-[10px] font-semibold">AA</span>
+          </IconBtn>
+          <IconBtn label="Title case" onClick={() => applyCase("title")}>
+            <span className="text-[10px] font-semibold">Aa</span>
+          </IconBtn>
+          <IconBtn label="Lowercase" onClick={() => applyCase("lower")}>
+            <span className="text-[10px] font-semibold">aa</span>
+          </IconBtn>
+        </div>
+      </Row>
+
       {!meta.field && !isArc && (
         <Row label="Live field">
           <div className="grid grid-cols-2 gap-1">
@@ -214,30 +324,6 @@ export default function TextProperties({ obj, kind }) {
         </Row>
       )}
 
-      <Row label="Content">
-        <textarea
-          className="field resize-none"
-          rows={2}
-          aria-label="Selected text content"
-          dir={rtl ? "rtl" : "ltr"}
-          style={{ fontFamily: fabricFamily(family), fontWeight: weight, fontSize: 12, lineHeight: 1.4 }}
-          value={currentText}
-          onChange={(e) => update({ text: e.target.value }, { silent: true })}
-          onBlur={() => commit()}
-        />
-        <div className="icon-grid mt-1.5">
-          <IconBtn label="Uppercase" onClick={() => applyCase("upper")}>
-            <span className="text-[10px] font-semibold">AA</span>
-          </IconBtn>
-          <IconBtn label="Title case" onClick={() => applyCase("title")}>
-            <span className="text-[10px] font-semibold">Aa</span>
-          </IconBtn>
-          <IconBtn label="Lowercase" onClick={() => applyCase("lower")}>
-            <span className="text-[10px] font-semibold">aa</span>
-          </IconBtn>
-        </div>
-      </Row>
-
       <Row label="Text shape">
         <div className="icon-grid">
           <IconBtn label="Straight text" on={!isArc} onClick={() => setShape("straight")}>
@@ -342,44 +428,52 @@ export default function TextProperties({ obj, kind }) {
         </Row>
       )}
 
-      <Slider
-        label="Size"
-        value={val("fontSize", 36)}
-        min={6}
-        max={160}
-        onChange={(v) => update({ fontSize: v })}
-        suffix="px"
-      />
-      {!isArc && (
+      <SliderGrid>
         <Slider
-          label="Height"
-          value={Math.round((obj.scaleY ?? 1) * 100)}
-          min={50}
-          max={250}
-          step={5}
-          onChange={(v) => update({ scaleY: v / 100 })}
-          suffix="%"
+          label="Size"
+          value={val("fontSize", 36)}
+          min={6}
+          max={160}
+          onChange={(v) => update({ fontSize: v })}
+          suffix="px"
+          resetValue={36}
         />
-      )}
+        {!isArc && (
+          <Slider
+            label="Height"
+            value={Math.round((obj.scaleY ?? 1) * 100)}
+            min={50}
+            max={250}
+            step={5}
+            onChange={(v) => update({ scaleY: v / 100 })}
+            suffix="%"
+            resetValue={100}
+          />
+        )}
+      </SliderGrid>
 
       {isArc ? (
         <>
-          <Slider
-            label="Radius"
-            value={meta.radius ?? 200}
-            min={50}
-            max={300}
-            onChange={(v) => update({ radius: v })}
-            suffix="px"
-          />
-          <Slider
-            label="Spread"
-            value={meta.letterSpacing ?? 2}
-            min={-5}
-            max={30}
-            step={0.5}
-            onChange={(v) => update({ letterSpacing: v })}
-          />
+          <SliderGrid>
+            <Slider
+              label="Radius"
+              value={meta.radius ?? 200}
+              min={50}
+              max={300}
+              onChange={(v) => update({ radius: v })}
+              suffix="px"
+              resetValue={200}
+            />
+            <Slider
+              label="Spread"
+              value={meta.letterSpacing ?? 2}
+              min={-5}
+              max={30}
+              step={0.5}
+              onChange={(v) => update({ letterSpacing: v })}
+              resetValue={2}
+            />
+          </SliderGrid>
           <Tooltip label="Balance arc ends" side="top">
             <button
               type="button"
@@ -396,7 +490,7 @@ export default function TextProperties({ obj, kind }) {
           </Tooltip>
         </>
       ) : (
-        <>
+        <SliderGrid>
           {!rtl && (
             <Slider
               label="Track"
@@ -405,6 +499,8 @@ export default function TextProperties({ obj, kind }) {
               max={800}
               step={10}
               onChange={(v) => update({ charSpacing: v })}
+              resetValue={0}
+              format={(v) => `${v > 0 ? "+" : ""}${v}`}
             />
           )}
           <Slider
@@ -414,8 +510,9 @@ export default function TextProperties({ obj, kind }) {
             max={2.5}
             step={0.02}
             onChange={(v) => update({ lineHeight: v })}
+            resetValue={1.16}
           />
-        </>
+        </SliderGrid>
       )}
 
     </div>

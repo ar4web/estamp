@@ -425,7 +425,7 @@ export default function SettingsPanel() {
                 onChange={onLogo}
               />
               <p className="text-[11px] leading-relaxed" style={{ color: "var(--text-mute)" }}>
-                Auto Design can fill these. Logo stays in this browser.
+                Company details and logo stay in this browser.
               </p>
             </Card>
 

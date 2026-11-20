@@ -2,7 +2,11 @@ import { downloadURL } from "./canvas";
 import { slugName } from "./print";
 
 export const STAMP_VERSION = 1;
-export const STAMP_TYPE = "stampcraft";
+export const STAMP_TYPE = "estamp";
+
+// .stamp files saved by older releases used the previous app name.
+// Keep accepting them so existing designs still open.
+const LEGACY_STAMP_TYPES = ["stampcraft"];
 
 export function buildStampFile({ name, json, ink, canvasColor, company }) {
   return {
@@ -24,8 +28,9 @@ export function parseStampFile(text) {
   } catch {
     throw new Error("File is not valid JSON");
   }
-  if (!data || data.type !== STAMP_TYPE || !data.json) {
-    throw new Error("Not a Stampcraft .stamp file");
+  const validType = data && (data.type === STAMP_TYPE || LEGACY_STAMP_TYPES.includes(data.type));
+  if (!validType || !data.json) {
+    throw new Error("Not an estamp .stamp file");
   }
   return data;
 }

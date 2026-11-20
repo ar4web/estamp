@@ -1,10 +1,11 @@
-export default function StampCard({ thumb, label, onClick, ariaLabel }) {
+export default function StampCard({ thumb, label, onClick, ariaLabel, title }) {
   return (
     <button
       type="button"
       className="stamp-card"
       onClick={onClick}
       aria-label={ariaLabel || `Apply ${label} stamp`}
+      title={title || label}
     >
       <span className="stamp-card-art">
         {thumb ? (

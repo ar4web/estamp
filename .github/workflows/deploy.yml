@@ -1,4 +1,4 @@
-name: Deploy StampCraft to GitHub Pages
+name: Deploy estamp to GitHub Pages
 
 on:
   push:

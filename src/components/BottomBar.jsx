@@ -1,4 +1,5 @@
 import useStampStore from "../store/useStampStore";
+import { APP_NAME } from "../config";
 
 export default function BottomBar() {
   const selected = useStampStore((s) => s.selected);
@@ -13,8 +14,8 @@ export default function BottomBar() {
         borderColor: "var(--border)",
       }}
     >
-      <span className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: "var(--text-mute)" }}>
-        Stampcraft
+      <span className="text-[9px] font-semibold tracking-wider" style={{ color: "var(--text-mute)" }}>
+        {APP_NAME}
       </span>
       <span
         className="max-w-[220px] truncate text-[10px] tabular-nums"

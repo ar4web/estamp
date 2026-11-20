@@ -13,6 +13,7 @@ import {
   Undo2,
 } from "lucide-react";
 import useStampStore from "../store/useStampStore";
+import { APP_NAME } from "../config";
 import { doExportJPG, doExportPNG, doExportSVG } from "../utils/actions";
 import { resolveTheme } from "../utils/theme";
 import Tooltip from "./Tooltip";
@@ -104,7 +105,7 @@ export default function TopBar() {
           <Stamp size={14} color="var(--on-accent)" />
         </div>
         <span className="hidden shrink-0 text-[13px] font-bold tracking-tight leading-none sm:inline">
-          Stampcraft
+          {APP_NAME}
         </span>
 
         <div className="mx-0.5 hidden h-4 w-px sm:block" style={{ background: "var(--border)" }} />
