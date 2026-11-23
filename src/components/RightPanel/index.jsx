@@ -6,10 +6,14 @@ import { Divider } from "../ui";
 import { selectionKind } from "../../utils/canvas";
 import { groupSelection, ungroupSelection } from "../../utils/actions";
 import LayersPanel from "./LayersPanel";
+import InsertTextPanel from "./InsertTextPanel";
 import TextProperties from "./TextProperties";
 import ShapeProperties from "./ShapeProperties";
 import ImageProperties from "./ImageProperties";
-import TransformBlock from "./TransformBlock";
+import ArrangeRow from "./ArrangeRow";
+import InspectorSliders from "./InspectorSliders";
+import ShapesPanel from "./ShapesPanel";
+import OrnamentsTool from "./OrnamentsTool";
 
 export default function RightPanel() {
   const rightOpen = useStampStore((s) => s.rightOpen);
@@ -57,7 +61,7 @@ export default function RightPanel() {
   return (
     <DraggablePanel
       title="Inspector"
-      width={320}
+      width={280}
       side="right"
       open={rightOpen}
       onClose={toggleRight}
@@ -65,14 +69,27 @@ export default function RightPanel() {
       background="#191919"
       className="inspector-panel"
     >
-      <div className="scroll-thin flex min-h-0 flex-1 flex-col overflow-y-auto p-2.5">
+      <div className="scroll-thin flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-2.5">
+        <InsertTextPanel />
+        <Divider />
         {properties}
+
+        <Divider />
+        <ArrangeRow />
+
         {selected && (
           <>
             <Divider />
-            <TransformBlock obj={selected} />
+            <InspectorSliders obj={selected} kind={kind} />
           </>
         )}
+
+        <Divider />
+        <OrnamentsTool />
+
+        <Divider />
+        <ShapesPanel />
+
         <Divider />
         <LayersPanel />
       </div>

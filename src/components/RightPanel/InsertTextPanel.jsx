@@ -22,7 +22,7 @@ const QUICK_PHRASES = [
   ...TEXT_PHRASES[2].items.slice(0, 3),
 ];
 
-export default function TextTool() {
+export default function InsertTextPanel() {
   const inkColor = useStampStore((s) => s.inkColor);
   const toast = useStampStore((s) => s.toast);
   const [text, setText] = useState("الرياض");

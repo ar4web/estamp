@@ -4,11 +4,7 @@ import {
   ArrowDownToLine,
   ArrowUpToLine,
   Copy,
-  Crosshair,
-  FlipHorizontal,
-  FlipVertical,
   Lock,
-  RotateCw,
   Spline,
   Trash2,
   Unlock,
@@ -16,7 +12,6 @@ import {
 import useStampStore from "../store/useStampStore";
 import { selectionKind, toggleTextCurve } from "../utils/canvas";
 import {
-  alignSelection,
   bringToFront,
   deleteSelection,
   duplicateSelection,
@@ -105,13 +100,6 @@ export default function ContextToolbar({ scrollRef }) {
   const kind = selectionKind(selected);
   const isText = kind === "text" || kind === "arc";
 
-  const mutate = (patch) => {
-    selected.set(patch);
-    selected.setCoords();
-    canvas.requestRenderAll();
-    commit();
-  };
-
   const curve = () => {
     toggleTextCurve(canvas, selected);
     commit();
@@ -159,34 +147,11 @@ export default function ContextToolbar({ scrollRef }) {
       <Btn title="Duplicate" shortcut="Ctrl+D" onClick={duplicateSelection}>
         <Copy size={15} />
       </Btn>
-      <Btn title="Centre on Stamp" onClick={() => alignSelection("both")}>
-        <Crosshair size={15} />
-      </Btn>
       <Btn title="Bring to Front" shortcut="Ctrl+]" onClick={bringToFront}>
         <ArrowUpToLine size={15} />
       </Btn>
       <Btn title="Send to Back" shortcut="Ctrl+[" onClick={sendToBack}>
         <ArrowDownToLine size={15} />
-      </Btn>
-      <div className="mx-0.5 h-4 w-px bg-[var(--border)]" />
-      <Btn title="Flip Horizontal" onClick={() => mutate({ flipX: !selected.flipX })}>
-        <FlipHorizontal size={15} />
-      </Btn>
-      <Btn title="Flip Vertical" onClick={() => mutate({ flipY: !selected.flipY })}>
-        <FlipVertical size={15} />
-      </Btn>
-      <Btn
-        title="Rotate 15°"
-        onClick={() => {
-          const next = (selected.angle || 0) + 15;
-          if (typeof selected.rotate === "function") selected.rotate(next);
-          else mutate({ angle: next });
-          selected.setCoords();
-          canvas.requestRenderAll();
-          commit();
-        }}
-      >
-        <RotateCw size={15} />
       </Btn>
       {isText && (
         <Btn title={kind === "arc" ? "Make Straight" : "Make Curved"} onClick={curve}>

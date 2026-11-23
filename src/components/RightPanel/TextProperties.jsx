@@ -8,8 +8,6 @@ import {
   ChevronsDown,
   ChevronsUp,
   Clock3,
-  FlipHorizontal,
-  FlipVertical,
   Hash,
   Italic,
   Spline,
@@ -23,7 +21,6 @@ import { rebuildArc, toggleTextCurve } from "../../utils/canvas";
 import { DATE_FORMATS, fieldText } from "../../utils/fields";
 import { isRTL } from "../../utils/arabic";
 import { FONT_SETS, fabricFamily, getCustomFonts, loadFont, plainFamily, refreshTextObject } from "../../utils/fonts";
-import { Slider } from "../ui";
 import Tooltip from "../Tooltip";
 import FontPicker from "../FontPicker";
 
@@ -44,9 +41,24 @@ function IconBtn({ label, on, onClick, children }) {
 }
 
 const WEIGHTS = [
-  { v: "400", label: "Rg" },
-  { v: "700", label: "Bd" },
-  { v: "900", label: "Blk" },
+  { v: "300", label: "Light" },
+  { v: "400", label: "Regular" },
+  { v: "500", label: "Medium" },
+  { v: "700", label: "Bold" },
+  { v: "900", label: "Black" },
+];
+
+const WEIGHT_NAMES = ({ 300: "Light", 400: "Regular", 500: "Medium", 700: "Bold", 900: "Black" });
+
+// Inch-based quick sizes for stamp work + the px ladder.
+const SIZE_OPTIONS = [
+  { v: 48, label: '½″' },
+  { v: 72, label: '¾″' },
+  { v: 96, label: '1″' },
+  { v: 120, label: '1¼″' },
+  { v: 144, label: '1½″' },
+  { v: 192, label: '2″' },
+  ...[8, 12, 16, 20, 24, 28, 32, 36, 40, 56, 64, 80, 160, 224].map((n) => ({ v: n, label: `${n}px` })),
 ];
 
 const LIVE_FIELDS = [
@@ -108,9 +120,13 @@ export default function TextProperties({ obj, kind }) {
   const val = (key, fallback) => (isArc ? meta[key] ?? fallback : obj[key] ?? fallback);
   const family = plainFamily(val("fontFamily", "Oswald"));
   const weight = String(val("fontWeight", "400"));
-  const weightLabel = ({ 400: "Rg", 700: "Bd", 900: "Blk" })[weight] || weight;
+  const weightName = WEIGHT_NAMES[weight] || weight;
   const currentText = isArc ? meta.text || "" : obj.text || "";
   const preview = String(currentText || family).trim().slice(0, 18) || "Aa";
+  const fontSize = Math.round(val("fontSize", 36));
+  const sizeOptions = SIZE_OPTIONS.some((o) => o.v === fontSize)
+    ? SIZE_OPTIONS
+    : [{ v: fontSize, label: `${fontSize}px` }, ...SIZE_OPTIONS];
 
   const applyFont = async (nextFamily) => {
     await loadFont(nextFamily);
@@ -174,7 +190,7 @@ export default function TextProperties({ obj, kind }) {
           type="button"
           className="font-trigger"
           title="Open font list"
-          aria-label={`Font ${family}, weight ${weightLabel}. Open font list`}
+          aria-label={`Font ${family}, weight ${weightName}. Open font list`}
           aria-haspopup="listbox"
           aria-expanded={fontOpen}
           onClick={() => setFontOpen((v) => !v)}
@@ -202,18 +218,40 @@ export default function TextProperties({ obj, kind }) {
             />
           </div>
         )}
-        <div className="weight-grid compact" aria-label="Font weight">
-          {WEIGHTS.map((w) => (
-            <button
-              key={w.v}
-              type="button"
-              className={`btn text-[10px] ${weight === w.v ? "btn-on" : ""}`}
-              aria-pressed={weight === w.v}
-              onClick={() => update({ fontWeight: w.v })}
+
+        {/* Size (with inch quick picks) + thickness selectors */}
+        <div className={`grid gap-1.5 ${isArc ? "grid-cols-1" : "grid-cols-2"}`}>
+          {!isArc && (
+            <select
+              className="field"
+              aria-label="Font size"
+              title="Font size"
+              value={String(fontSize)}
+              onChange={(e) => update({ fontSize: Number(e.target.value) })}
             >
-              {w.label}
-            </button>
-          ))}
+              {sizeOptions.map((o) => (
+                <option key={o.v} value={String(o.v)}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          )}
+          <select
+            className="field"
+            aria-label="Thickness"
+            title="Font thickness"
+            value={weight}
+            onChange={(e) => update({ fontWeight: e.target.value })}
+          >
+            {WEIGHTS.some((w) => w.v === weight) ? null : (
+              <option value={weight}>{weight}</option>
+            )}
+            {WEIGHTS.map((w) => (
+              <option key={w.v} value={w.v}>
+                {w.label}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
@@ -348,32 +386,6 @@ export default function TextProperties({ obj, kind }) {
         >
           <ChevronsDown size={15} />
         </IconBtn>
-        <IconBtn
-          label="Flip horizontal"
-          on={!!obj.flipX}
-          onClick={() => {
-            obj.set({ flipX: !obj.flipX });
-            obj.setCoords();
-            canvas.requestRenderAll();
-            commit();
-            touch();
-          }}
-        >
-          <FlipHorizontal size={15} />
-        </IconBtn>
-        <IconBtn
-          label="Flip vertical"
-          on={!!obj.flipY}
-          onClick={() => {
-            obj.set({ flipY: !obj.flipY });
-            obj.setCoords();
-            canvas.requestRenderAll();
-            commit();
-            touch();
-          }}
-        >
-          <FlipVertical size={15} />
-        </IconBtn>
         {!isArc && (
           <>
             <IconBtn
@@ -413,54 +425,11 @@ export default function TextProperties({ obj, kind }) {
             </IconBtn>
           </>
         )}
-      </div>
-
-      <Slider
-        label="Size"
-        value={val("fontSize", 36)}
-        min={6}
-        max={160}
-        onChange={(v) => update({ fontSize: v })}
-        suffix="px"
-        resetValue={36}
-      />
-      {!isArc && (
-        <Slider
-          label="Height"
-          value={Math.round((obj.scaleY ?? 1) * 100)}
-          min={50}
-          max={250}
-          step={5}
-          onChange={(v) => update({ scaleY: v / 100 })}
-          suffix="%"
-          resetValue={100}
-        />
-      )}
-
-      {isArc ? (
-        <>
-          <Slider
-            label="Radius"
-            value={meta.radius ?? 200}
-            min={50}
-            max={300}
-            onChange={(v) => update({ radius: v })}
-            suffix="px"
-            resetValue={200}
-          />
-          <Slider
-            label="Spread"
-            value={meta.letterSpacing ?? 2}
-            min={-5}
-            max={30}
-            step={0.5}
-            onChange={(v) => update({ letterSpacing: v })}
-            resetValue={2}
-          />
+        {isArc && (
           <Tooltip label="Balance arc ends" side="top">
             <button
               type="button"
-              className="btn w-full"
+              className="btn"
               aria-label="Balance arc ends"
               onClick={() => {
                 const t = String(meta.text || "").trim().replace(/\s+/g, " ");
@@ -471,32 +440,8 @@ export default function TextProperties({ obj, kind }) {
               <StretchHorizontal size={15} />
             </button>
           </Tooltip>
-        </>
-      ) : (
-        <>
-          {!rtl && (
-            <Slider
-              label="Track"
-              value={obj.charSpacing ?? 0}
-              min={-100}
-              max={800}
-              step={10}
-              onChange={(v) => update({ charSpacing: v })}
-              resetValue={0}
-              format={(v) => `${v > 0 ? "+" : ""}${v}`}
-            />
-          )}
-          <Slider
-            label="Leading"
-            value={obj.lineHeight ?? 1.16}
-            min={0.6}
-            max={2.5}
-            step={0.02}
-            onChange={(v) => update({ lineHeight: v })}
-            resetValue={1.16}
-          />
-        </>
-      )}
+        )}
+      </div>
     </div>
   );
 }

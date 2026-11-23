@@ -134,8 +134,8 @@ src/
     Toast.jsx           Auto-dismissing success / error / info messages
     DraggablePanel.jsx  Anchored side panels → bottom sheets under 768px
     ui.jsx              Icon-only sliders + buttons (tooltip/aria-label), toggles
-    LeftSidebar/        Icon rail + hover flyouts: Templates, Text, Shapes & Frames, Ornaments
-    RightPanel/         Context-aware inspector: selection props, align, transform, layers
+    LeftSidebar/        Icon rail (Templates only) + bottom save/library/settings pins
+    RightPanel/         Text + ornaments + shapes: insert, editing, align/arrange, sliders, layers
     CanvasArea/         Fabric canvas, zoom controls, mm/cm rulers
   **/__tests__/      Vitest unit tests for the pure logic modules
     Modals/             Save-load gallery, template grid, export sizes

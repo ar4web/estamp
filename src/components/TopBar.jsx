@@ -3,11 +3,8 @@ import {
   ChevronDown,
   Download,
   FileImage,
-  FolderOpen,
   Moon,
   Redo2,
-  Save,
-  Settings2,
   Sparkles,
   Stamp,
   Sun,
@@ -48,13 +45,11 @@ export default function TopBar() {
     designName,
     setDesignName,
     dirty,
-    toggleSettings,
     openModal,
     undo,
     redo,
     canUndo,
     canRedo,
-    saveCurrent,
   } = useStampStore();
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -166,9 +161,6 @@ export default function TopBar() {
         <ToolBtn label="Redo" hint="Ctrl+Shift+Z" onClick={redo} disabled={!canRedo}>
           <Redo2 size={14} />
         </ToolBtn>
-        <ToolBtn label="Save" hint="Ctrl+S" onClick={() => saveCurrent()} active={dirty}>
-          <Save size={14} />
-        </ToolBtn>
 
         <span className="mx-0.5 h-4 w-px" style={{ background: "var(--border)" }} />
 
@@ -177,12 +169,6 @@ export default function TopBar() {
           onClick={toggleTheme}
         >
           {resolveTheme(theme) === "dark" ? <Sun size={14} /> : <Moon size={14} />}
-        </ToolBtn>
-        <ToolBtn label="Preferences" hint="Ctrl+K" onClick={toggleSettings}>
-          <Settings2 size={14} />
-        </ToolBtn>
-        <ToolBtn label="My Stamps" hint="Library · .stamp files" onClick={() => openModal("saveload")}>
-          <FolderOpen size={14} />
         </ToolBtn>
 
         <span className="mx-0.5 h-4 w-px" style={{ background: "var(--border)" }} />

@@ -193,7 +193,6 @@ export function Slider({
   suffix = "",
   debounce = 60,
   icon: Icon,
-  presets,
   resetValue,
   format,
 }) {
@@ -324,20 +323,6 @@ export function Slider({
           </span>
         )}
       </div>
-      {!!presets?.length && (
-        <div className="slider-presets">
-          {presets.map((p) => (
-            <button
-              key={String(p.value)}
-              type="button"
-              className={`slider-chip ${Number(local) === Number(p.value) ? "is-on" : ""}`}
-              onClick={() => apply(p.value)}
-            >
-              {p.label}
-            </button>
-          ))}
-        </div>
-      )}
     </div>
   );
 }

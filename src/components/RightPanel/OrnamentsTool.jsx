@@ -25,7 +25,7 @@ function place(specs, label) {
   toast(`Added ${label}`, "success");
 }
 
-export default function OrnamentTool() {
+export default function OrnamentsTool() {
   const ink = useStampStore((s) => s.inkColor);
 
   const items = [

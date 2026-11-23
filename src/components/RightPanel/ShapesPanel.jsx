@@ -16,7 +16,6 @@ import useStampStore from "../../store/useStampStore";
 import { CANVAS_SIZE, buildShapeWithDoubleBorder } from "../../utils/canvas";
 import { addObject } from "../../utils/actions";
 import { Divider, IconBtn, Slider } from "../ui";
-import AlignTool from "./AlignTool";
 import DistressTool from "./DistressTool";
 
 const C = CANVAS_SIZE / 2;
@@ -33,7 +32,7 @@ const SHAPES = [
   { id: "line", label: "Horizontal rule", icon: Minus, spec: { type: "line", x1: C - 170, y1: C, x2: C + 170, y2: C } },
 ];
 
-export default function BorderTool() {
+export default function ShapesPanel() {
   const inkColor = useStampStore((s) => s.inkColor);
   const toast = useStampStore((s) => s.toast);
   const [strokeWidth, setStrokeWidth] = useState(6);
@@ -93,8 +92,6 @@ export default function BorderTool() {
       </div>
       {double && <Slider label="Gap" value={gap} min={2} max={40} onChange={setGap} suffix="px" />}
 
-      <Divider />
-      <AlignTool />
       <Divider />
       <DistressTool />
     </div>
