@@ -11,7 +11,6 @@ import {
   Palette,
   Pencil,
   RotateCcw,
-  Save,
   Square,
   Squircle,
   Sun,
@@ -477,14 +476,6 @@ export default function SettingsPanel() {
                   onChange={(e) => st.setDesignName(e.target.value)}
                 />
               </Row>
-              <div className="flex gap-1.5">
-                <button type="button" className="btn btn-ok flex-1" onClick={() => st.saveCurrent()}>
-                  <Save size={14} aria-hidden /> Save
-                </button>
-                <button type="button" className="btn flex-1" onClick={() => st.saveAsNew()}>
-                  Copy
-                </button>
-              </div>
               <div className="flex gap-1.5">
                 <button type="button" className="btn flex-1" onClick={() => st.exportStampFile()}>
                   Export .stamp

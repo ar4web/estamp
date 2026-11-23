@@ -464,6 +464,19 @@ input[type="range"]::-moz-range-thumb {
   min-width: 0;
   margin-bottom: 6px;
 }
+.slider-label.slider-icon {
+  flex: 0 0 20px;
+  justify-content: center;
+  cursor: help;
+}
+.slider-icon svg {
+  width: 13px;
+  height: 13px;
+  opacity: 0.85;
+}
+.slider-row-icon {
+  gap: 8px;
+}
 .slider-label {
   display: flex;
   flex: 0 0 58px;
@@ -600,33 +613,6 @@ input[type="range"]::-moz-range-thumb {
   border-color: #4b6b9e;
   color: #e6e6e6;
 }
-.slider-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 6px;
-  margin-bottom: 6px;
-}
-.slider-grid .slider-row {
-  margin-bottom: 0;
-  gap: 4px;
-}
-.slider-grid .slider-label {
-  flex: 0 0 42px;
-  font-size: 8px;
-  gap: 3px;
-}
-.slider-grid .slider-label svg {
-  flex-basis: 9px;
-  width: 9px;
-  height: 9px;
-}
-.slider-grid .slider-num {
-  flex-basis: 34px;
-}
-.slider-grid .slider-presets {
-  margin-bottom: 0;
-}
-
 input[type="color"] {
   -webkit-appearance: none;
   appearance: none;
@@ -1267,55 +1253,6 @@ html.light .btn-ok { color: var(--ok); }
   --text-mute: #8a8a8a;
   --radius: 4px;
   --ctl-h: 28px;
-}
-
-.insp-tabs {
-  display: flex;
-  flex: 0 0 auto;
-  align-items: stretch;
-  gap: 4px;
-  padding: 0 6px;
-  background: #191919;
-  border-bottom: 1px solid #2e2e2e;
-}
-.insp-tab {
-  display: flex;
-  flex: 1 1 0;
-  align-items: center;
-  justify-content: center;
-  min-width: 0;
-  min-height: 32px;
-  padding: 8px 4px;
-  border: 0;
-  border-bottom: 2px solid transparent;
-  border-radius: 4px 4px 0 0;
-  background: transparent;
-  color: #8a8a8a;
-  font-family: var(--font-ui);
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  line-height: 1;
-  text-align: center;
-  white-space: nowrap;
-  transition: background-color 0.16s ease, color 0.16s ease, border-color 0.16s ease;
-}
-.insp-tab:hover {
-  background: #222222;
-  color: #e6e6e6;
-}
-.insp-tab.is-on {
-  background: #222222;
-  border-bottom-color: #4b6b9e;
-  color: #e6e6e6;
-}
-.insp-tab:focus-visible {
-  outline: 2px solid #4b6b9e;
-  outline-offset: -2px;
-}
-.insp-tab .insp-tab-count {
-  margin-left: 2px;
-  color: #8a8a8a;
 }
 
 /* ------------------------------------------------------------------ */

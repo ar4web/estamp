@@ -130,12 +130,12 @@ src/
   App.jsx               Top bar + sidebars + canvas layout
   index.css             CSS variables, dark/light themes, checkerboard
   components/
-    TopBar.jsx          Global actions, theme switch, undo/redo, export
+    TopBar.jsx          Global actions, theme switch, save/undo/redo, export
     Toast.jsx           Auto-dismissing success / error / info messages
-    DraggablePanel.jsx  Draggable panels → bottom sheets under 768px
-    ui.jsx              Sliders (100ms debounced), colour picker, toggles
-    LeftSidebar/        Text, Shape, Image, Templates, Layers tools
-    RightPanel/         Context-aware Text / Shape / Image properties
+    DraggablePanel.jsx  Anchored side panels → bottom sheets under 768px
+    ui.jsx              Icon-only sliders + buttons (tooltip/aria-label), toggles
+    LeftSidebar/        Icon rail + hover flyouts: Templates, Text, Shapes & Frames, Ornaments
+    RightPanel/         Context-aware inspector: selection props, align, transform, layers
     CanvasArea/         Fabric canvas, zoom controls, mm/cm rulers
   **/__tests__/      Vitest unit tests for the pure logic modules
     Modals/             Save-load gallery, template grid, export sizes

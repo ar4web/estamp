@@ -3,13 +3,18 @@ import {
   AlignCenter,
   AlignLeft,
   AlignRight,
+  CalendarClock,
+  CalendarDays,
   ChevronsDown,
   ChevronsUp,
+  Clock3,
   FlipHorizontal,
   FlipVertical,
+  Hash,
   Italic,
   Spline,
   ChevronDown,
+  StretchHorizontal,
   Type,
   Underline,
 } from "lucide-react";
@@ -18,16 +23,16 @@ import { rebuildArc, toggleTextCurve } from "../../utils/canvas";
 import { DATE_FORMATS, fieldText } from "../../utils/fields";
 import { isRTL } from "../../utils/arabic";
 import { FONT_SETS, fabricFamily, getCustomFonts, loadFont, plainFamily, refreshTextObject } from "../../utils/fonts";
-import { Row, Slider, SliderGrid } from "../ui";
+import { Slider } from "../ui";
 import Tooltip from "../Tooltip";
 import FontPicker from "../FontPicker";
 
-function IconBtn({ label, on, onClick, children, danger }) {
+function IconBtn({ label, on, onClick, children }) {
   return (
     <Tooltip label={label} side="top">
       <button
         type="button"
-        className={`btn ${on ? "btn-on" : ""} ${danger ? "btn-danger" : ""}`}
+        className={`btn ${on ? "btn-on" : ""}`}
         aria-label={label}
         aria-pressed={on == null ? undefined : !!on}
         onClick={onClick}
@@ -42,6 +47,13 @@ const WEIGHTS = [
   { v: "400", label: "Rg" },
   { v: "700", label: "Bd" },
   { v: "900", label: "Blk" },
+];
+
+const LIVE_FIELDS = [
+  { id: "date", icon: CalendarDays },
+  { id: "time", icon: Clock3 },
+  { id: "datetime", icon: CalendarClock },
+  { id: "serial", icon: Hash },
 ];
 
 export default function TextProperties({ obj, kind }) {
@@ -136,6 +148,25 @@ export default function TextProperties({ obj, kind }) {
     useStampStore.getState().syncSelection();
   };
 
+  const applyField = (id) => {
+    const next = {
+      ...(obj.stampMeta || {}),
+      kind: "text",
+      field: id,
+      dateFormat: "DD MMM YYYY",
+      serialPrefix: "NO. ",
+      serialValue: 1,
+      serialPad: 4,
+    };
+    if (id === "serial") {
+      next.serialPrefix = obj.stampMeta?.serialPrefix ?? "NO. ";
+      next.serialValue = obj.stampMeta?.serialValue ?? 1;
+      next.serialPad = obj.stampMeta?.serialPad ?? 4;
+    }
+    obj.stampMeta = next;
+    update({ text: fieldText(next) });
+  };
+
   return (
     <div className="space-y-2">
       <div className="font-control" ref={fontControlRef}>
@@ -186,89 +217,61 @@ export default function TextProperties({ obj, kind }) {
         </div>
       </div>
 
-      <Row label="Content">
-        <textarea
-          className="field resize-none"
-          rows={2}
-          aria-label="Selected text content"
-          dir={rtl ? "rtl" : "ltr"}
-          style={{ fontFamily: fabricFamily(family), fontWeight: weight, fontSize: 12, lineHeight: 1.4 }}
-          value={currentText}
-          onChange={(e) => update({ text: e.target.value }, { silent: true })}
-          onBlur={() => commit()}
-        />
-        <div className="icon-grid mt-1.5">
-          <IconBtn label="Uppercase" onClick={() => applyCase("upper")}>
-            <span className="text-[10px] font-semibold">AA</span>
-          </IconBtn>
-          <IconBtn label="Title case" onClick={() => applyCase("title")}>
-            <span className="text-[10px] font-semibold">Aa</span>
-          </IconBtn>
-          <IconBtn label="Lowercase" onClick={() => applyCase("lower")}>
-            <span className="text-[10px] font-semibold">aa</span>
-          </IconBtn>
-        </div>
-      </Row>
-
-      {!meta.field && !isArc && (
-        <Row label="Live field">
-          <div className="grid grid-cols-2 gap-1">
-            {["date", "time", "serial", "datetime"].map((id) => (
-              <button
-                key={id}
-                type="button"
-                className="btn text-[10px]"
-                onClick={() => {
-                  const next = {
-                    ...(obj.stampMeta || {}),
-                    kind: "text",
-                    field: id,
-                    dateFormat: "DD MMM YYYY",
-                    serialPrefix: "NO. ",
-                    serialValue: 1,
-                    serialPad: 4,
-                  };
-                  obj.stampMeta = next;
-                  update({ text: fieldText(next) });
-                }}
-              >
-                {id}
-              </button>
-            ))}
-          </div>
-        </Row>
-      )}
+      <textarea
+        className="field resize-none"
+        rows={2}
+        aria-label="Selected text content"
+        dir={rtl ? "rtl" : "ltr"}
+        style={{ fontFamily: fabricFamily(family), fontWeight: weight, fontSize: 12, lineHeight: 1.4 }}
+        value={currentText}
+        onChange={(e) => update({ text: e.target.value }, { silent: true })}
+        onBlur={() => commit()}
+      />
+      <div className="icon-grid">
+        <IconBtn label="Uppercase" onClick={() => applyCase("upper")}>
+          <span className="text-[10px] font-semibold">AA</span>
+        </IconBtn>
+        <IconBtn label="Title case" onClick={() => applyCase("title")}>
+          <span className="text-[10px] font-semibold">Aa</span>
+        </IconBtn>
+        <IconBtn label="Lowercase" onClick={() => applyCase("lower")}>
+          <span className="text-[10px] font-semibold">aa</span>
+        </IconBtn>
+        {!meta.field &&
+          LIVE_FIELDS.map((f) => (
+            <IconBtn
+              key={f.id}
+              label={`Insert ${f.id} field`}
+              onClick={() => applyField(f.id)}
+            >
+              <f.icon size={15} />
+            </IconBtn>
+          ))}
+      </div>
 
       {meta.field && (
-        <Row label="Live field" hint={meta.field}>
-          <div className="grid grid-cols-2 gap-1 mb-1.5">
-            {["date", "time", "datetime", "serial"].map((id) => (
-              <button
-                key={id}
-                type="button"
-                className={`btn text-[10px] ${meta.field === id ? "btn-on" : ""}`}
-                onClick={() => {
-                  const next = { ...meta, field: id };
-                  if (id === "serial") {
-                    next.serialPrefix = next.serialPrefix ?? "NO. ";
-                    next.serialValue = next.serialValue ?? 1;
-                    next.serialPad = next.serialPad ?? 4;
-                  }
-                  obj.stampMeta = next;
-                  update({ text: fieldText(next) });
-                }}
+        <>
+          <div className="icon-grid" role="group" aria-label="Live field type">
+            {LIVE_FIELDS.map((f) => (
+              <IconBtn
+                key={f.id}
+                label={`Live field: ${f.id}`}
+                on={meta.field === f.id}
+                onClick={() => applyField(f.id)}
               >
-                {id}
-              </button>
+                <f.icon size={15} />
+              </IconBtn>
             ))}
           </div>
           {(meta.field === "date" || meta.field === "datetime") && (
-            <div className="flex flex-wrap gap-1 mb-1.5">
+            <div className="flex flex-wrap gap-1">
               {DATE_FORMATS.map((f) => (
                 <button
                   key={f.id}
                   type="button"
                   className={`btn !min-h-6 !px-1.5 text-[9px] ${meta.dateFormat === f.id ? "btn-on" : ""}`}
+                  aria-pressed={meta.dateFormat === f.id}
+                  title={`Date format ${f.id}`}
                   onClick={() => {
                     const next = { ...meta, dateFormat: f.id };
                     obj.stampMeta = next;
@@ -321,88 +324,72 @@ export default function TextProperties({ obj, kind }) {
               />
             </div>
           )}
-        </Row>
+        </>
       )}
 
-      <Row label="Text shape">
-        <div className="icon-grid">
-          <IconBtn label="Straight text" on={!isArc} onClick={() => setShape("straight")}>
-            <Type size={15} />
-          </IconBtn>
-          <IconBtn label="Curved text" on={isArc} onClick={() => setShape("curved")}>
-            <Spline size={15} />
-          </IconBtn>
-          <IconBtn
-            label="Top arch"
-            on={isArc && (meta.position || "top") === "top"}
-            onClick={() => setShape("top")}
-          >
-            <ChevronsUp size={15} />
-          </IconBtn>
-          <IconBtn
-            label="Bottom arch"
-            on={isArc && (meta.position || "top") === "bottom"}
-            onClick={() => setShape("bottom")}
-          >
-            <ChevronsDown size={15} />
-          </IconBtn>
-        </div>
-      </Row>
-
-      <Row label="Flip">
-        <div className="icon-grid">
-          <IconBtn
-            label="Flip horizontal"
-            on={!!obj.flipX}
-            onClick={() => {
-              obj.set({ flipX: !obj.flipX });
-              obj.setCoords();
-              canvas.requestRenderAll();
-              commit();
-              touch();
-            }}
-          >
-            <FlipHorizontal size={15} />
-          </IconBtn>
-          <IconBtn
-            label="Flip vertical"
-            on={!!obj.flipY}
-            onClick={() => {
-              obj.set({ flipY: !obj.flipY });
-              obj.setCoords();
-              canvas.requestRenderAll();
-              commit();
-              touch();
-            }}
-          >
-            <FlipVertical size={15} />
-          </IconBtn>
-          {!isArc && (
-            <>
-              <IconBtn
-                label="Italic"
-                on={obj.fontStyle === "italic"}
-                onClick={() =>
-                  update({ fontStyle: obj.fontStyle === "italic" ? "normal" : "italic" })
-                }
-              >
-                <Italic size={15} />
-              </IconBtn>
-              <IconBtn
-                label="Underline"
-                on={!!obj.underline}
-                onClick={() => update({ underline: !obj.underline })}
-              >
-                <Underline size={15} />
-              </IconBtn>
-            </>
-          )}
-        </div>
-      </Row>
-
-      {!isArc && (
-        <Row label="Alignment">
-          <div className="icon-grid">
+      <div className="icon-grid">
+        <IconBtn label="Straight text" on={!isArc} onClick={() => setShape("straight")}>
+          <Type size={15} />
+        </IconBtn>
+        <IconBtn label="Curved text" on={isArc} onClick={() => setShape("curved")}>
+          <Spline size={15} />
+        </IconBtn>
+        <IconBtn
+          label="Top arch"
+          on={isArc && (meta.position || "top") === "top"}
+          onClick={() => setShape("top")}
+        >
+          <ChevronsUp size={15} />
+        </IconBtn>
+        <IconBtn
+          label="Bottom arch"
+          on={isArc && (meta.position || "top") === "bottom"}
+          onClick={() => setShape("bottom")}
+        >
+          <ChevronsDown size={15} />
+        </IconBtn>
+        <IconBtn
+          label="Flip horizontal"
+          on={!!obj.flipX}
+          onClick={() => {
+            obj.set({ flipX: !obj.flipX });
+            obj.setCoords();
+            canvas.requestRenderAll();
+            commit();
+            touch();
+          }}
+        >
+          <FlipHorizontal size={15} />
+        </IconBtn>
+        <IconBtn
+          label="Flip vertical"
+          on={!!obj.flipY}
+          onClick={() => {
+            obj.set({ flipY: !obj.flipY });
+            obj.setCoords();
+            canvas.requestRenderAll();
+            commit();
+            touch();
+          }}
+        >
+          <FlipVertical size={15} />
+        </IconBtn>
+        {!isArc && (
+          <>
+            <IconBtn
+              label="Italic"
+              on={obj.fontStyle === "italic"}
+              onClick={() => update({ fontStyle: obj.fontStyle === "italic" ? "normal" : "italic" })}
+            >
+              <Italic size={15} />
+            </IconBtn>
+            <IconBtn label="Underline" on={!!obj.underline} onClick={() => update({ underline: !obj.underline })}>
+              <Underline size={15} />
+            </IconBtn>
+          </>
+        )}
+        {!isArc && (
+          <>
             <IconBtn
               label="Align left"
               on={obj.textAlign === "left"}
@@ -424,56 +411,52 @@ export default function TextProperties({ obj, kind }) {
             >
               <AlignRight size={15} />
             </IconBtn>
-          </div>
-        </Row>
-      )}
-
-      <SliderGrid>
-        <Slider
-          label="Size"
-          value={val("fontSize", 36)}
-          min={6}
-          max={160}
-          onChange={(v) => update({ fontSize: v })}
-          suffix="px"
-          resetValue={36}
-        />
-        {!isArc && (
-          <Slider
-            label="Height"
-            value={Math.round((obj.scaleY ?? 1) * 100)}
-            min={50}
-            max={250}
-            step={5}
-            onChange={(v) => update({ scaleY: v / 100 })}
-            suffix="%"
-            resetValue={100}
-          />
+          </>
         )}
-      </SliderGrid>
+      </div>
+
+      <Slider
+        label="Size"
+        value={val("fontSize", 36)}
+        min={6}
+        max={160}
+        onChange={(v) => update({ fontSize: v })}
+        suffix="px"
+        resetValue={36}
+      />
+      {!isArc && (
+        <Slider
+          label="Height"
+          value={Math.round((obj.scaleY ?? 1) * 100)}
+          min={50}
+          max={250}
+          step={5}
+          onChange={(v) => update({ scaleY: v / 100 })}
+          suffix="%"
+          resetValue={100}
+        />
+      )}
 
       {isArc ? (
         <>
-          <SliderGrid>
-            <Slider
-              label="Radius"
-              value={meta.radius ?? 200}
-              min={50}
-              max={300}
-              onChange={(v) => update({ radius: v })}
-              suffix="px"
-              resetValue={200}
-            />
-            <Slider
-              label="Spread"
-              value={meta.letterSpacing ?? 2}
-              min={-5}
-              max={30}
-              step={0.5}
-              onChange={(v) => update({ letterSpacing: v })}
-              resetValue={2}
-            />
-          </SliderGrid>
+          <Slider
+            label="Radius"
+            value={meta.radius ?? 200}
+            min={50}
+            max={300}
+            onChange={(v) => update({ radius: v })}
+            suffix="px"
+            resetValue={200}
+          />
+          <Slider
+            label="Spread"
+            value={meta.letterSpacing ?? 2}
+            min={-5}
+            max={30}
+            step={0.5}
+            onChange={(v) => update({ letterSpacing: v })}
+            resetValue={2}
+          />
           <Tooltip label="Balance arc ends" side="top">
             <button
               type="button"
@@ -485,12 +468,12 @@ export default function TextProperties({ obj, kind }) {
                 update({ text: t });
               }}
             >
-              Balance arc ends
+              <StretchHorizontal size={15} />
             </button>
           </Tooltip>
         </>
       ) : (
-        <SliderGrid>
+        <>
           {!rtl && (
             <Slider
               label="Track"
@@ -512,9 +495,8 @@ export default function TextProperties({ obj, kind }) {
             onChange={(v) => update({ lineHeight: v })}
             resetValue={1.16}
           />
-        </SliderGrid>
+        </>
       )}
-
     </div>
   );
 }

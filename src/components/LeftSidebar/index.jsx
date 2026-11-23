@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
-  Image as ImageIcon,
   LayoutTemplate,
-  Library,
   Shapes,
   Sparkles,
   Type,
@@ -13,19 +11,15 @@ import { selectionKind } from "../../utils/canvas";
 import { useIsMobile } from "../DraggablePanel";
 import Tooltip from "../Tooltip";
 import TextTool from "./TextTool";
-import ImageTool from "./ImageTool";
 import TemplateGallery from "./TemplateGallery";
 import OrnamentTool from "./OrnamentTool";
 import BorderTool from "./BorderTool";
-import ClipTool from "./ClipTool";
 
 const SECTIONS = [
   { id: "template", label: "Templates", hint: "All layouts & presets", icon: LayoutTemplate, Component: TemplateGallery },
   { id: "text", label: "Text", hint: "Type, fonts, phrases", icon: Type, Component: TextTool },
   { id: "border", label: "Shapes & Frames", hint: "Shapes, align, distress", icon: Shapes, Component: BorderTool },
   { id: "ornament", label: "Ornaments", hint: "Stars, seals, flourishes", icon: Sparkles, Component: OrnamentTool },
-  { id: "image", label: "Logo", hint: "Drop, knock out, vectorize", icon: ImageIcon, Component: ImageTool },
-  { id: "clip", label: "Clips", hint: "Save & reuse motifs", icon: Library, Component: ClipTool },
 ];
 
 export default function LeftSidebar() {
@@ -124,8 +118,6 @@ export default function LeftSidebar() {
     const id =
       k === "text" || k === "arc" ? "text"
       : k === "shape" || k === "group" ? "border"
-      : k === "image" || k === "textured" ? "image"
-      : k === "multi" ? "clip"
       : null;
     if (id && id !== active) {
       captureScroll();

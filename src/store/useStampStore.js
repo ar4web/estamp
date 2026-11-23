@@ -263,26 +263,6 @@ export const useStampStore = create((set, get) => ({
   openModal: (modal) => set({ modal }),
   closeModal: () => set({ modal: null }),
 
-  inspectorTab: "props",
-  setInspectorTab: (tab) => {
-    const inspectorTab = ["props", "layers", "export"].includes(tab) ? tab : "props";
-    set({ inspectorTab });
-  },
-  focusSection: null,
-  revealSection: (id) => {
-    if (id === "settings" || id === "options") {
-      set({ settingsOpen: true });
-      return;
-    }
-    const tab =
-      id === "layers" ? "layers" : id === "export" ? "export" : "props";
-    set({
-      rightOpen: true,
-      inspectorTab: tab,
-      focusSection: id,
-    });
-    setTimeout(() => set({ focusSection: null }), 600);
-  },
 
   /* ---------------- toasts ---------------- */
   toasts: [],
