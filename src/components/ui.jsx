@@ -14,12 +14,50 @@ import {
   Scaling,
   Type,
 } from "lucide-react";
+import Tooltip from "./Tooltip";
 
 const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
 const round = (v, step) => {
   const d = (String(step).split(".")[1] || "").length;
   return Number(v.toFixed(d));
 };
+
+/**
+ * Icon-only button with a hover/focus tooltip — the shared primitive for the
+ * icon-first tool panels. The visible UI carries no text; the tooltip and the
+ * aria-label do the labelling.
+ */
+export function IconBtn({
+  icon: Icon,
+  label,
+  hint,
+  onClick,
+  active,
+  side = "top",
+  size = 16,
+  disabled,
+  className = "",
+}) {
+  return (
+    <Tooltip label={label} hint={hint} side={side} className="w-full">
+      <button
+        type="button"
+        className={`tool-icon-btn ${active ? "is-on" : ""} ${className}`}
+        aria-label={label}
+        aria-pressed={active ?? undefined}
+        disabled={disabled}
+        onClick={onClick}
+      >
+        <Icon size={size} strokeWidth={1.75} aria-hidden />
+      </button>
+    </Tooltip>
+  );
+}
+
+/** Hairline separator used to break icon-only panels into groups. */
+export function Divider() {
+  return <div className="tool-divider" role="separator" aria-hidden />;
+}
 
 export function Row({ label, hint, children, className = "" }) {
   return (

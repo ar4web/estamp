@@ -1,13 +1,14 @@
-import { BookmarkPlus, Trash2 } from "lucide-react";
+import { BoxSelect, Stamp, Trash2 } from "lucide-react";
 import useStampStore from "../../store/useStampStore";
 import { EXTRA_PROPS, serialize, thumbnail } from "../../utils/canvas";
 import { placeClip } from "../../utils/actions";
-import { Empty, Row } from "../ui";
+import { Empty, IconBtn } from "../ui";
 
 export default function ClipTool() {
   const clips = useStampStore((s) => s.clips);
   const canvas = useStampStore((s) => s.canvas);
   const selected = useStampStore((s) => s.selected);
+  const designName = useStampStore((s) => s.designName);
   const addClip = useStampStore((s) => s.addClip);
   const removeClip = useStampStore((s) => s.removeClip);
   const toast = useStampStore((s) => s.toast);
@@ -44,20 +45,25 @@ export default function ClipTool() {
   return (
     <div className="space-y-2.5">
       <div className="grid grid-cols-2 gap-1.5">
-        <button type="button" className="btn text-[9px]" onClick={saveSelection} disabled={!selected}>
-          <BookmarkPlus size={12} />
-          Selection
-        </button>
-        <button type="button" className="btn text-[9px]" onClick={saveStamp}>
-          <BookmarkPlus size={12} />
-          Whole stamp
-        </button>
+        <IconBtn
+          icon={BoxSelect}
+          label="Save selection as clip"
+          onClick={saveSelection}
+          disabled={!selected}
+          size={15}
+        />
+        <IconBtn
+          icon={Stamp}
+          label="Save whole stamp as clip"
+          hint={designName || undefined}
+          onClick={saveStamp}
+          size={15}
+        />
       </div>
-      <Row label="Clips" hint={`${clips.length}/24`}>
-        {clips.length === 0 ? (
-          <Empty title="No clips yet" hint="Save a selection or the whole stamp to reuse later." />
-        ) : (
-          <div className="grid grid-cols-2 gap-1.5">
+      {clips.length === 0 ? (
+        <Empty icon={Stamp} title="No clips yet" hint="Save a selection or the whole stamp to reuse later." />
+      ) : (
+        <div className="grid grid-cols-2 gap-1.5">
             {clips.map((clip) => (
               <div key={clip.id} className="group relative border" style={{ borderColor: "var(--border-soft)" }}>
                 <button type="button" className="block w-full" onClick={() => placeClip(clip)} aria-label={`Place ${clip.name}`}>
@@ -88,7 +94,6 @@ export default function ClipTool() {
             ))}
           </div>
         )}
-      </Row>
     </div>
   );
 }

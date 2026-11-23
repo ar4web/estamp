@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
-  Bookmark,
-  Flower2,
   Image as ImageIcon,
-  LayoutGrid,
-  Scan,
+  LayoutTemplate,
+  Library,
+  Shapes,
+  Sparkles,
   Type,
   X,
 } from "lucide-react";
@@ -20,12 +20,12 @@ import BorderTool from "./BorderTool";
 import ClipTool from "./ClipTool";
 
 const SECTIONS = [
-  { id: "template", label: "Templates", hint: "All layouts & presets", icon: LayoutGrid, Component: TemplateGallery },
+  { id: "template", label: "Templates", hint: "All layouts & presets", icon: LayoutTemplate, Component: TemplateGallery },
   { id: "text", label: "Text", hint: "Type, fonts, phrases", icon: Type, Component: TextTool },
-  { id: "border", label: "Frame", hint: "Shape, align, distress", icon: Scan, Component: BorderTool },
-  { id: "ornament", label: "Ornaments", hint: "Stars, seals, flourishes", icon: Flower2, Component: OrnamentTool },
+  { id: "border", label: "Shapes & Frames", hint: "Shapes, align, distress", icon: Shapes, Component: BorderTool },
+  { id: "ornament", label: "Ornaments", hint: "Stars, seals, flourishes", icon: Sparkles, Component: OrnamentTool },
   { id: "image", label: "Logo", hint: "Drop, knock out, vectorize", icon: ImageIcon, Component: ImageTool },
-  { id: "clip", label: "Clips", hint: "Reuse motifs", icon: Bookmark, Component: ClipTool },
+  { id: "clip", label: "Clips", hint: "Save & reuse motifs", icon: Library, Component: ClipTool },
 ];
 
 export default function LeftSidebar() {

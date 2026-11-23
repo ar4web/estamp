@@ -1,32 +1,21 @@
 import {
   AlignCenterHorizontal,
-  AlignCenterVertical,
   AlignEndHorizontal,
   AlignEndVertical,
   AlignStartHorizontal,
   AlignStartVertical,
+  Crosshair,
   FlipHorizontal,
   FlipVertical,
   Grid3x3,
+  Plus,
   RotateCcw,
   RotateCw,
   Ruler,
-  Scan,
 } from "lucide-react";
 import useStampStore from "../../store/useStampStore";
 import { alignToPaper, flipSelection, rotateSelection } from "../../utils/actions";
-import { Row } from "../ui";
-
-function Cell({ label, onClick, children }) {
-  return (
-    <button type="button" className="btn flex-col !gap-1 !px-0" style={{ minHeight: 48 }} onClick={onClick} aria-label={label}>
-      {children}
-      <span className="text-[8px] font-semibold uppercase tracking-wide" style={{ color: "var(--text-dim)" }}>
-        {label}
-      </span>
-    </button>
-  );
-}
+import { Divider, IconBtn } from "../ui";
 
 export default function AlignTool() {
   const selected = useStampStore((s) => s.selected);
@@ -37,80 +26,51 @@ export default function AlignTool() {
   const showGuides = useStampStore((s) => s.showGuides);
   const toggleGuides = useStampStore((s) => s.toggleGuides);
 
+  const hint = selected ? undefined : "Select a layer first";
+
   return (
-    <div className="space-y-2.5">
-      <Row label="On paper" hint={selected ? "selection" : "select first"}>
-        <div className="grid grid-cols-3 gap-1.5">
-          <Cell label="Left" onClick={() => alignToPaper("left")}>
-            <AlignStartVertical size={14} />
-          </Cell>
-          <Cell label="Center" onClick={() => alignToPaper("both")}>
-            <Scan size={14} />
-          </Cell>
-          <Cell label="Right" onClick={() => alignToPaper("right")}>
-            <AlignEndVertical size={14} />
-          </Cell>
-          <Cell label="Top" onClick={() => alignToPaper("top")}>
-            <AlignStartHorizontal size={14} />
-          </Cell>
-          <Cell label="Middle" onClick={() => alignToPaper("v")}>
-            <AlignCenterHorizontal size={14} />
-          </Cell>
-          <Cell label="Bottom" onClick={() => alignToPaper("bottom")}>
-            <AlignEndHorizontal size={14} />
-          </Cell>
-        </div>
-      </Row>
-      <Row label="Turn" hint="shift-drag snaps 15°">
-        <div className="grid grid-cols-4 gap-1.5">
-          <Cell label="-15°" onClick={() => rotateSelection(-15)}>
-            <RotateCcw size={14} />
-          </Cell>
-          <Cell label="+15°" onClick={() => rotateSelection(15)}>
-            <RotateCw size={14} />
-          </Cell>
-          <Cell label="Flip H" onClick={() => flipSelection("h")}>
-            <FlipHorizontal size={14} />
-          </Cell>
-          <Cell label="Flip V" onClick={() => flipSelection("v")}>
-            <FlipVertical size={14} />
-          </Cell>
-        </div>
-      </Row>
-      <Row label="Guides">
-        <div className="grid grid-cols-3 gap-1.5">
-          <button
-            type="button"
-            className={`btn flex-col !gap-1 !px-0 ${showGuides ? "btn-on" : ""}`}
-            style={{ minHeight: 48 }}
-            aria-pressed={showGuides}
-            onClick={toggleGuides}
-          >
-            <AlignCenterVertical size={14} />
-            <span className="text-[8px] font-semibold uppercase">Cross</span>
-          </button>
-          <button
-            type="button"
-            className={`btn flex-col !gap-1 !px-0 ${showGrid ? "btn-on" : ""}`}
-            style={{ minHeight: 48 }}
-            aria-pressed={showGrid}
-            onClick={toggleGrid}
-          >
-            <Grid3x3 size={14} />
-            <span className="text-[8px] font-semibold uppercase">Grid</span>
-          </button>
-          <button
-            type="button"
-            className={`btn flex-col !gap-1 !px-0 ${showRulers ? "btn-on" : ""}`}
-            style={{ minHeight: 48 }}
-            aria-pressed={showRulers}
-            onClick={toggleRulers}
-          >
-            <Ruler size={14} />
-            <span className="text-[8px] font-semibold uppercase">Ruler</span>
-          </button>
-        </div>
-      </Row>
+    <div className="space-y-2">
+      <div className="grid grid-cols-3 gap-1.5">
+        <IconBtn icon={AlignStartVertical} label="Align to left edge" hint={hint} onClick={() => alignToPaper("left")} />
+        <IconBtn icon={Crosshair} label="Center on paper" hint={hint} onClick={() => alignToPaper("both")} />
+        <IconBtn icon={AlignEndVertical} label="Align to right edge" hint={hint} onClick={() => alignToPaper("right")} />
+        <IconBtn icon={AlignStartHorizontal} label="Align to top edge" hint={hint} onClick={() => alignToPaper("top")} />
+        <IconBtn icon={AlignCenterHorizontal} label="Center vertically" hint={hint} onClick={() => alignToPaper("v")} />
+        <IconBtn icon={AlignEndHorizontal} label="Align to bottom edge" hint={hint} onClick={() => alignToPaper("bottom")} />
+      </div>
+
+      <div className="grid grid-cols-4 gap-1.5">
+        <IconBtn icon={RotateCcw} label="Rotate −15°" onClick={() => rotateSelection(-15)} />
+        <IconBtn icon={RotateCw} label="Rotate +15°" hint="Shift-drag snaps 15°" onClick={() => rotateSelection(15)} />
+        <IconBtn icon={FlipHorizontal} label="Flip horizontal" onClick={() => flipSelection("h")} />
+        <IconBtn icon={FlipVertical} label="Flip vertical" onClick={() => flipSelection("v")} />
+      </div>
+
+      <Divider />
+
+      <div className="grid grid-cols-3 gap-1.5">
+        <IconBtn
+          icon={Plus}
+          label="Center guides"
+          hint="Cross hair at the paper centre"
+          active={showGuides}
+          onClick={toggleGuides}
+        />
+        <IconBtn
+          icon={Grid3x3}
+          label="Grid"
+          hint="Snap grid overlay"
+          active={showGrid}
+          onClick={toggleGrid}
+        />
+        <IconBtn
+          icon={Ruler}
+          label="Rulers"
+          hint="Millimetre rulers"
+          active={showRulers}
+          onClick={toggleRulers}
+        />
+      </div>
     </div>
   );
 }

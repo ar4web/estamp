@@ -14,7 +14,6 @@ export default function StampCard({ thumb, label, onClick, ariaLabel, title }) {
           <span className="h-3 w-3 animate-pulse" style={{ background: "var(--border)" }} />
         )}
       </span>
-      <span className="stamp-card-name">{label}</span>
     </button>
   );
 }

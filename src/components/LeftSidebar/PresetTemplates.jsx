@@ -1,5 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
-import { RefreshCw } from "lucide-react";
+import {
+  CalendarDays,
+  Circle,
+  Egg,
+  Italic,
+  RectangleHorizontal,
+  RefreshCw,
+  StretchHorizontal,
+} from "lucide-react";
 import useStampStore from "../../store/useStampStore";
 import { renderTemplateThumb, selectionKind } from "../../utils/canvas";
 import {
@@ -19,9 +27,18 @@ import {
   OFFICE_MARKS,
   STAMP_LOOKS,
 } from "../../utils/phrases";
-import { Fold, Row } from "../ui";
-import CompactHead from "./CompactHead";
+import { Divider, IconBtn } from "../ui";
 import StampCard from "./StampCard";
+
+// Icon for each custom mark frame / live-field frame.
+const LOOK_ICONS = {
+  round: Circle,
+  oval: Egg,
+  rect: RectangleHorizontal,
+  dated: CalendarDays,
+  banner: StretchHorizontal,
+  slant: Italic,
+};
 
 async function waitFonts() {
   await Promise.all([
@@ -118,111 +135,93 @@ export default function PresetTemplates() {
 
   return (
     <div className="mt-3 space-y-2.5">
-      <section>
-        <CompactHead title="Text looks" />
-        <div className="tool-add mb-1.5">
-          <input
-            className="field"
-            aria-label="Word used by text looks"
-            dir={isRTL(word) ? "rtl" : "ltr"}
-            style={{ fontFamily: font, fontWeight: 700 }}
-            value={word}
-            onChange={(e) => setWord(e.target.value)}
-            placeholder="Word for looks"
+      <div className="tool-add">
+        <input
+          className="field"
+          aria-label="Word used by the text looks"
+          dir={isRTL(word) ? "rtl" : "ltr"}
+          style={{ fontFamily: font, fontWeight: 700 }}
+          value={word}
+          onChange={(e) => setWord(e.target.value)}
+          placeholder="ESTAMP"
+        />
+      </div>
+      <div className="stamp-grid compact">
+        {looks.map((tpl) => (
+          <StampCard
+            key={tpl.id}
+            thumb={thumbs[tpl.id]}
+            label={tpl.label}
+            title={`${tpl.label} — ${sample}`}
+            onClick={() => loadTemplate(tpl)}
           />
-        </div>
-        <div className="stamp-grid compact">
-          {looks.map((tpl) => (
-            <StampCard
-              key={tpl.id}
-              thumb={thumbs[tpl.id]}
-              label={tpl.label}
-              title={`${tpl.label} — ${sample}`}
-              onClick={() => loadTemplate(tpl)}
-            />
-          ))}
-        </div>
-      </section>
+        ))}
+      </div>
 
-      <section>
-        <CompactHead title="Office marks" />
-        <div className="stamp-grid compact">
-          {marks.map((tpl) => (
-            <StampCard
-              key={tpl.id}
-              thumb={thumbs[tpl.id]}
-              label={tpl.label}
-              onClick={() => loadTemplate(tpl)}
-            />
-          ))}
-        </div>
-        <Fold title="Custom word frames" open={false}>
-          <div className="chip-grid">
-            {MARK_LOOKS.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                className="btn"
-                onClick={async () => {
-                  await waitFonts();
-                  applyMarkLook(sample, item.id, ink, "Oswald");
-                }}
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
-        </Fold>
-      </section>
+      <Divider />
 
-      <section>
-        <CompactHead title="Date & No." />
-        <div className="stamp-grid compact">
-          {fields.map((tpl) => (
-            <StampCard
-              key={tpl.id}
-              thumb={thumbs[tpl.id]}
-              label={tpl.label}
-              onClick={() => loadTemplate(tpl)}
-            />
-          ))}
-        </div>
-        <Fold title="Frame & date style" open={false}>
-          <Row label="Frame">
-            <div className="chip-grid">
-              {FIELD_LOOKS.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  className={`btn ${fieldLook === item.id ? "btn-on" : ""}`}
-                  aria-pressed={fieldLook === item.id}
-                  onClick={() => setFieldLook(fieldLook === item.id ? "" : item.id)}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-          </Row>
-          <Row label="Style">
-            <div className="chip-grid">
-              {DATE_FORMATS.map((f) => (
-                <button
-                  key={f.id}
-                  type="button"
-                  className={`btn ${dateFormat === f.id ? "btn-on" : ""}`}
-                  aria-pressed={dateFormat === f.id}
-                  onClick={() => setDateFormat(f.id)}
-                >
-                  {f.label}
-                </button>
-              ))}
-            </div>
-          </Row>
-          <button type="button" className="btn w-full" onClick={() => refreshFields()}>
-            <RefreshCw size={13} aria-hidden /> Refresh live fields
+      <div className="stamp-grid compact">
+        {marks.map((tpl) => (
+          <StampCard
+            key={tpl.id}
+            thumb={thumbs[tpl.id]}
+            label={tpl.label}
+            onClick={() => loadTemplate(tpl)}
+          />
+        ))}
+      </div>
+      <div className="grid grid-cols-6 gap-1.5">
+        {MARK_LOOKS.map((item) => (
+          <IconBtn
+            key={item.id}
+            icon={LOOK_ICONS[item.id] || Circle}
+            label={`Apply ${item.label} frame`}
+            onClick={async () => {
+              await waitFonts();
+              applyMarkLook(sample, item.id, ink, "Oswald");
+            }}
+          />
+        ))}
+      </div>
+
+      <Divider />
+
+      <div className="stamp-grid compact">
+        {fields.map((tpl) => (
+          <StampCard
+            key={tpl.id}
+            thumb={thumbs[tpl.id]}
+            label={tpl.label}
+            onClick={() => loadTemplate(tpl)}
+          />
+        ))}
+      </div>
+      <div className="grid grid-cols-3 gap-1.5">
+        {FIELD_LOOKS.map((item) => (
+          <IconBtn
+            key={item.id}
+            icon={LOOK_ICONS[item.id] || Circle}
+            label={`Use ${item.label} live-field frame`}
+            active={fieldLook === item.id}
+            onClick={() => setFieldLook(fieldLook === item.id ? "" : item.id)}
+          />
+        ))}
+      </div>
+      <div className="chip-grid compact">
+        {DATE_FORMATS.map((f) => (
+          <button
+            key={f.id}
+            type="button"
+            className={`btn ${dateFormat === f.id ? "btn-on" : ""}`}
+            aria-pressed={dateFormat === f.id}
+            title={`Date format ${f.id}`}
+            onClick={() => setDateFormat(f.id)}
+          >
+            {f.label}
           </button>
-        </Fold>
-      </section>
+        ))}
+      </div>
+      <IconBtn icon={RefreshCw} label="Refresh live fields" onClick={() => refreshFields()} />
     </div>
   );
 }

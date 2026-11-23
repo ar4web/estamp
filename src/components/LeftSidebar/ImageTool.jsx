@@ -1,9 +1,9 @@
 import { useRef, useState } from "react";
-import { ImagePlus, Loader2 } from "lucide-react";
+import { Building2, Contrast, Eraser, Frame, ImagePlus, Loader2 } from "lucide-react";
 import useStampStore from "../../store/useStampStore";
 import { addImageFromFile, applyStampFilter, clipObjectToRing } from "../../utils/canvas";
 import { removeImageBackground } from "../../utils/image";
-import { Checkbox } from "../ui";
+import { Divider, IconBtn } from "../ui";
 
 export default function ImageTool() {
   const inputRef = useRef(null);
@@ -52,7 +52,7 @@ export default function ImageTool() {
     <div>
       <button
         type="button"
-        aria-label="Upload a logo image"
+        aria-label="Import a logo — PNG, JPG or SVG"
         onClick={() => inputRef.current?.click()}
         onDragOver={(e) => {
           e.preventDefault();
@@ -64,21 +64,18 @@ export default function ImageTool() {
           setHover(false);
           handleFiles(e.dataTransfer.files);
         }}
-        className="mb-3 flex w-full cursor-pointer flex-col items-center gap-2 border-2 border-dashed px-3 py-7 text-center"
+        className="mb-3 flex w-full cursor-pointer flex-col items-center gap-2 border-2 border-dashed px-3 py-6 text-center"
         style={{
           borderColor: hover ? "var(--accent)" : "var(--border-soft)",
           background: hover ? "var(--bg-btn-hover)" : "var(--bg-sunken)",
         }}
+        title="Import a logo — PNG, JPG or SVG"
       >
         {loading ? (
-          <Loader2 size={22} className="animate-spin" style={{ color: "var(--accent)" }} />
+          <Loader2 size={24} className="animate-spin" style={{ color: "var(--accent)" }} />
         ) : (
-          <ImagePlus size={22} style={{ color: "var(--text-dim)" }} />
+          <ImagePlus size={24} style={{ color: hover ? "var(--accent)" : "var(--text-dim)" }} />
         )}
-        <p className="text-[13px] font-semibold">Click or drop a logo</p>
-        <p className="text-[12px] leading-relaxed" style={{ color: "var(--text-dim)" }}>
-          PNG · JPG · SVG (vectors stay editable)
-        </p>
       </button>
 
       <input
@@ -93,9 +90,9 @@ export default function ImageTool() {
       />
 
       {company?.logo ? (
-        <button
-          type="button"
-          className="btn w-full mb-3"
+        <IconBtn
+          icon={Building2}
+          label="Use company logo"
           onClick={async () => {
             const store = useStampStore.getState();
             try {
@@ -106,32 +103,34 @@ export default function ImageTool() {
               store.toast(e.message, "error");
             }
           }}
-        >
-          Use company logo
-        </button>
+        />
       ) : null}
 
-      <Checkbox
-        label="Auto stamp filter"
-        checked={autoFilter}
-        onChange={setAutoFilter}
-      />
-      <Checkbox
-        label="Remove background"
-        checked={knockout}
-        onChange={setKnockout}
-        hint="Knocks out the paper/white backdrop on import."
-      />
-      <Checkbox
-        label="Fit and clip to frame"
-        checked={fitRing}
-        onChange={setFitRing}
-        hint="Centers the logo in the outer ring and knocks out overflow."
-      />
-      <p className="text-[12px] leading-relaxed" style={{ color: "var(--text-dim)" }}>
-        The stamp filter converts bitmaps to grayscale, boosts contrast and knocks
-        out the background so logos print like real rubber ink.
-      </p>
+      <Divider />
+
+      <div className="grid grid-cols-3 gap-1.5">
+        <IconBtn
+          icon={Contrast}
+          label="Stamp filter"
+          hint="Grayscale + high contrast"
+          active={autoFilter}
+          onClick={() => setAutoFilter((v) => !v)}
+        />
+        <IconBtn
+          icon={Eraser}
+          label="Knock out background"
+          hint="Drops the backdrop on import"
+          active={knockout}
+          onClick={() => setKnockout((v) => !v)}
+        />
+        <IconBtn
+          icon={Frame}
+          label="Fit to frame"
+          hint="Center & clip inside the ring"
+          active={fitRing}
+          onClick={() => setFitRing((v) => !v)}
+        />
+      </div>
     </div>
   );
 }

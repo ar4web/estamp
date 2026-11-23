@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
-import { Download, ImageIcon } from "lucide-react";
-import { TEMPLATES, TEMPLATE_CATEGORIES } from "../../templates";
+import { Download, Image as ImageIcon } from "lucide-react";
+import { TEMPLATES } from "../../templates";
 import { downloadURL, renderTemplateThumb } from "../../utils/canvas";
 import { loadTemplate } from "../../utils/actions";
 import useStampStore from "../../store/useStampStore";
 import PresetTemplates from "./PresetTemplates";
-import CompactHead from "./CompactHead";
 
 const cache = new Map();
 
@@ -47,7 +46,7 @@ export function useTemplateThumbs(list = TEMPLATES) {
 }
 
 /** Compact card: three of these fit on one row of the 300px drawer. */
-export function TemplateCard({ tpl, thumb, onClick, large }) {
+export function TemplateCard({ tpl, thumb, onClick }) {
   const toast = useStampStore((s) => s.toast);
 
   const quickExport = async (e) => {
@@ -111,30 +110,18 @@ export function TemplateCard({ tpl, thumb, onClick, large }) {
 
       {tpl.logo && (
         <span
-          className="absolute left-0.5 top-0.5 flex items-center gap-0.5 border px-0.5 text-[8px] font-semibold uppercase"
+          className="absolute left-0.5 top-0.5 grid h-5 w-5 place-items-center border"
           style={{
             background: "var(--bg-panel)",
             borderColor: "var(--accent)",
             color: "var(--accent)",
           }}
+          title="Has a logo slot"
+          aria-label="Template includes a logo slot"
         >
-          <ImageIcon size={7} /> Logo
+          <ImageIcon size={11} />
         </span>
       )}
-
-      <div className="border-t px-1 py-1" style={{ borderColor: "var(--border-soft)" }}>
-        <p
-          className={`truncate font-semibold ${large ? "text-[11px]" : "text-[9px]"}`}
-          title={tpl.name}
-        >
-          {tpl.name}
-        </p>
-        {large && (
-          <p className="truncate text-[10px]" style={{ color: "var(--text-dim)" }}>
-            {tpl.tags?.join(" · ")}
-          </p>
-        )}
-      </div>
     </div>
   );
 }
@@ -142,30 +129,19 @@ export function TemplateCard({ tpl, thumb, onClick, large }) {
 export default function TemplateGallery() {
   const thumbs = useTemplateThumbs();
 
-  // Compact grouped sections — three templates per row.
   return (
     <div className="space-y-2">
-      {TEMPLATE_CATEGORIES.map((cat) => {
-        const items = TEMPLATES.filter((t) => t.cat === cat);
-        if (!items.length) return null;
-        return (
-          <section key={cat}>
-            <CompactHead title={cat} />
-            <div className="grid grid-cols-3 gap-1.5">
-              {items.map((tpl) => (
-                <TemplateCard
-                  key={tpl.id}
-                  tpl={tpl}
-                  thumb={thumbs[tpl.id]}
-                  onClick={() => loadTemplate(tpl)}
-                />
-              ))}
-            </div>
-          </section>
-        );
-      })}
+      <div className="grid grid-cols-3 gap-1.5">
+        {TEMPLATES.map((tpl) => (
+          <TemplateCard
+            key={tpl.id}
+            tpl={tpl}
+            thumb={thumbs[tpl.id]}
+            onClick={() => loadTemplate(tpl)}
+          />
+        ))}
+      </div>
 
-      {/* Additional stamp presets */}
       <PresetTemplates />
     </div>
   );

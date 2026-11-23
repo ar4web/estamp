@@ -1,24 +1,36 @@
 import { useState } from "react";
-import { Circle, Egg, Hexagon, Minus, RectangleHorizontal, Square, Star, Triangle } from "lucide-react";
+import {
+  Circle,
+  Egg,
+  Hexagon,
+  Minus,
+  RectangleHorizontal,
+  Square,
+  SquareDashed,
+  SquareSquare,
+  Star,
+  Squircle,
+  Triangle,
+} from "lucide-react";
 import useStampStore from "../../store/useStampStore";
 import { CANVAS_SIZE, buildShapeWithDoubleBorder } from "../../utils/canvas";
 import { addObject } from "../../utils/actions";
-import { Checkbox, Row, Slider } from "../ui";
+import { Divider, IconBtn, Slider } from "../ui";
 import AlignTool from "./AlignTool";
 import DistressTool from "./DistressTool";
 
 const C = CANVAS_SIZE / 2;
 
 const SHAPES = [
-  { id: "square", label: "Square", icon: Square, spec: { type: "rect", w: 440, h: 440, rx: 0 } },
-  { id: "rect", label: "Rect", icon: RectangleHorizontal, spec: { type: "rect", w: 500, h: 250, rx: 0 } },
-  { id: "round", label: "Round", icon: RectangleHorizontal, spec: { type: "rect", w: 500, h: 250, rx: 26 } },
-  { id: "circle", label: "Circle", icon: Circle, spec: { type: "circle", r: 240 } },
-  { id: "ellipse", label: "Oval", icon: Egg, spec: { type: "ellipse", rx: 255, ry: 160 } },
-  { id: "hexagon", label: "Hex", icon: Hexagon, spec: { type: "hexagon", r: 240 } },
-  { id: "star", label: "Star", icon: Star, spec: { type: "star", outer: 240, inner: 100 } },
-  { id: "triangle", label: "Triangle", icon: Triangle, spec: { type: "triangle", r: 230 } },
-  { id: "line", label: "Line", icon: Minus, spec: { type: "line", x1: C - 170, y1: C, x2: C + 170, y2: C } },
+  { id: "square", label: "Square frame", icon: Square, spec: { type: "rect", w: 440, h: 440, rx: 0 } },
+  { id: "rect", label: "Rectangle frame", icon: RectangleHorizontal, spec: { type: "rect", w: 500, h: 250, rx: 0 } },
+  { id: "round", label: "Rounded frame", icon: Squircle, spec: { type: "rect", w: 500, h: 250, rx: 26 } },
+  { id: "circle", label: "Circle frame", icon: Circle, spec: { type: "circle", r: 240 } },
+  { id: "ellipse", label: "Oval frame", icon: Egg, spec: { type: "ellipse", rx: 255, ry: 160 } },
+  { id: "hexagon", label: "Hexagon frame", icon: Hexagon, spec: { type: "hexagon", r: 240 } },
+  { id: "star", label: "Star seal", icon: Star, spec: { type: "star", outer: 240, inner: 100 } },
+  { id: "triangle", label: "Triangle seal", icon: Triangle, spec: { type: "triangle", r: 230 } },
+  { id: "line", label: "Horizontal rule", icon: Minus, spec: { type: "line", x1: C - 170, y1: C, x2: C + 170, y2: C } },
 ];
 
 export default function BorderTool() {
@@ -48,36 +60,42 @@ export default function BorderTool() {
   return (
     <div>
       <div className="mb-2 grid grid-cols-3 gap-1.5">
-          {SHAPES.map((s) => (
-            <button
-              key={s.id}
-              type="button"
-              onClick={() => place(s)}
-              title={s.label}
-              aria-label={`Add ${s.label}`}
-              className="btn flex-col !gap-1 !px-0"
-              style={{ minHeight: 52 }}
-            >
-              <s.icon size={16} />
-              <span className="text-[11px] font-medium" style={{ color: "var(--text-dim)" }}>
-                {s.label}
-              </span>
-            </button>
-          ))}
-        </div>
+        {SHAPES.map((s) => (
+          <IconBtn key={s.id} icon={s.icon} label={s.label} onClick={() => place(s)} size={17} />
+        ))}
+      </div>
 
       <Slider label="Stroke" value={strokeWidth} min={1} max={20} onChange={setStrokeWidth} suffix="px" />
       <Slider label="Size" value={scale} min={30} max={120} onChange={setScale} suffix="%" />
-      <Checkbox label="Double border" checked={double} onChange={setDouble} />
-      {double && <Slider label="Gap" value={gap} min={2} max={40} onChange={setGap} suffix="px" />}
-      <Checkbox label="Solid fill" checked={filled} onChange={setFilled} />
-      <Checkbox label="Dashed stroke" checked={dashed} onChange={setDashed} />
 
-      <div className="my-3 h-px" style={{ background: "var(--border-soft)" }} />
-      <p className="label mb-2">Align</p>
+      <div className="mb-3 grid grid-cols-3 gap-1.5">
+        <IconBtn
+          icon={SquareSquare}
+          label="Double border"
+          hint="Outer + inner ring"
+          active={double}
+          onClick={() => setDouble((v) => !v)}
+        />
+        <IconBtn
+          icon={(p) => <Square {...p} fill="currentColor" stroke="none" />}
+          label="Solid fill"
+          hint="Fill the shape with ink"
+          active={filled}
+          onClick={() => setFilled((v) => !v)}
+        />
+        <IconBtn
+          icon={SquareDashed}
+          label="Dashed stroke"
+          hint="Broken dash outline"
+          active={dashed}
+          onClick={() => setDashed((v) => !v)}
+        />
+      </div>
+      {double && <Slider label="Gap" value={gap} min={2} max={40} onChange={setGap} suffix="px" />}
+
+      <Divider />
       <AlignTool />
-      <div className="my-3 h-px" style={{ background: "var(--border-soft)" }} />
-      <p className="label mb-2">Distress</p>
+      <Divider />
       <DistressTool />
     </div>
   );

@@ -1,16 +1,21 @@
 import {
-  Asterisk,
   Circle,
+  CircleDot,
   Diamond,
+  Equal,
+  Flower,
+  Leaf,
   Minus,
-  Sparkle,
+  MoreHorizontal,
+  Sparkles,
+  Spline,
   Star,
-  Wand2,
+  Sun,
 } from "lucide-react";
 import useStampStore from "../../store/useStampStore";
 import { CANVAS_SIZE, createSpecObject } from "../../utils/canvas";
 import { addObject } from "../../utils/actions";
-import { Row } from "../ui";
+import { IconBtn } from "../ui";
 
 const C = CANVAS_SIZE / 2;
 
@@ -37,7 +42,7 @@ export default function OrnamentTool() {
     {
       id: "burst",
       label: "Burst",
-      icon: Asterisk,
+      icon: Sun,
       run: () =>
         place(
           [{ type: "star", outer: 32, inner: 10, points: 8, cx: C, cy: C, fill: ink, strokeWidth: 0, name: "Burst" }],
@@ -47,7 +52,7 @@ export default function OrnamentTool() {
     {
       id: "dot",
       label: "Dot",
-      icon: Circle,
+      icon: CircleDot,
       run: () =>
         place([{ type: "circle", r: 8, cx: C, cy: C, fill: ink, strokeWidth: 0, name: "Dot" }], "dot"),
     },
@@ -70,8 +75,8 @@ export default function OrnamentTool() {
     },
     {
       id: "dblrule",
-      label: "Double",
-      icon: Minus,
+      label: "Double rule",
+      icon: Equal,
       run: () =>
         place(
           [
@@ -109,7 +114,7 @@ export default function OrnamentTool() {
     {
       id: "laurel",
       label: "Laurel",
-      icon: Sparkle,
+      icon: Leaf,
       run: () =>
         place(
           [
@@ -129,7 +134,7 @@ export default function OrnamentTool() {
     {
       id: "flourish",
       label: "Flourish",
-      icon: Wand2,
+      icon: Spline,
       run: () =>
         place(
           [
@@ -149,8 +154,8 @@ export default function OrnamentTool() {
     },
     {
       id: "starline",
-      label: "Star line",
-      icon: Star,
+      label: "Star divider",
+      icon: Sparkles,
       run: () =>
         place(
           [
@@ -163,8 +168,8 @@ export default function OrnamentTool() {
     },
     {
       id: "dots3",
-      label: "Dots",
-      icon: Circle,
+      label: "Dot divider",
+      icon: MoreHorizontal,
       run: () =>
         place(
           [
@@ -178,7 +183,7 @@ export default function OrnamentTool() {
     {
       id: "seal",
       label: "Rosette",
-      icon: Asterisk,
+      icon: Flower,
       run: () =>
         place(
           [
@@ -192,25 +197,17 @@ export default function OrnamentTool() {
 
   return (
     <div className="space-y-2.5">
-      <Row label="Ornaments">
-        <div className="grid grid-cols-3 gap-1.5">
-          {items.map((it) => (
-            <button
-              key={it.id}
-              type="button"
-              onClick={it.run}
-              className="btn flex-col !gap-1 !px-0"
-              style={{ minHeight: 52 }}
-              aria-label={`Add ${it.label}`}
-            >
-              <it.icon size={14} />
-              <span className="text-[9px] font-medium" style={{ color: "var(--text-dim)" }}>
-                {it.label}
-              </span>
-            </button>
-          ))}
-        </div>
-      </Row>
+      <div className="grid grid-cols-4 gap-1.5">
+        {items.map((it) => (
+          <IconBtn
+            key={it.id}
+            icon={it.icon}
+            label={`Add ${it.label}`}
+            onClick={it.run}
+            size={17}
+          />
+        ))}
+      </div>
       <p className="text-[9px] leading-relaxed" style={{ color: "var(--text-mute)" }}>
         Drops at the paper centre in current ink. Move and scale like any layer.
       </p>
