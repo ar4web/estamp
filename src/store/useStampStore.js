@@ -75,7 +75,7 @@ export const useStampStore = create((set, get) => ({
     storage.setPrefs({ selectionColor: color });
     set({ selectionColor: color });
     if (c) {
-      styleSelection(c, color);
+      styleSelection(c, color, get().selectionBorderWidth);
       c.requestRenderAll();
     }
   },
@@ -170,12 +170,13 @@ export const useStampStore = create((set, get) => ({
   palettes: storage.getPalettes(),
   refreshPalettes: () => set({ palettes: storage.getPalettes() }),
   savePalette: (name, colors) => {
-    const record = storage.savePalette({
+    const { record, persisted } = storage.savePalette({
       name,
       colors: colors || [get().inkColor],
     });
     set({ palettes: storage.getPalettes() });
-    get().toast(`Saved ink set "${record.name}"`, "success");
+    if (persisted) get().toast(`Saved ink set "${record.name}"`, "success");
+    else get().toast("Ink set kept for this session only — browser storage is full", "error");
     return record;
   },
   removePalette: (id) => {
@@ -338,8 +339,11 @@ export const useStampStore = create((set, get) => ({
     const state = history.redo();
     if (!c || !state) return;
     history.lock();
-    await deserialize(c, state);
-    history.unlock();
+    try {
+      await deserialize(c, state);
+    } finally {
+      history.unlock();
+    }
     set({
       canUndo: history.canUndo(),
       canRedo: history.canRedo(),
@@ -358,7 +362,7 @@ export const useStampStore = create((set, get) => ({
   saveCurrent: (name) => {
     const c = get().canvas;
     if (!c) return null;
-    const record = storage.saveDesign({
+    const { record, persisted } = storage.saveDesign({
       id: get().currentDesignId,
       name: name || get().designName,
       json: serialize(c),
@@ -368,9 +372,15 @@ export const useStampStore = create((set, get) => ({
       currentDesignId: record.id,
       designName: record.name,
       designs: storage.getDesigns(),
-      dirty: false,
+      // Keep dirty when the write failed so the UI never claims an unsaved
+      // design is safe.
+      ...(persisted ? { dirty: false } : {}),
     });
-    get().toast(`Saved "${record.name}"`, "success");
+    if (persisted) {
+      get().toast(`Saved "${record.name}"`, "success");
+    } else {
+      get().toast("Browser storage is full — kept for this session; export a .stamp to be safe", "error");
+    }
     return record;
   },
   saveAsNew: (name) => {
@@ -380,10 +390,16 @@ export const useStampStore = create((set, get) => ({
   loadDesign: async (id) => {
     const c = get().canvas;
     const record = storage.getDesigns().find((d) => d.id === id);
-    if (!c || !record) return;
+    if (!c || !record) return false;
     history.lock();
-    await deserialize(c, record.json);
-    history.unlock();
+    try {
+      await deserialize(c, record.json);
+    } catch (e) {
+      get().toast(`Could not load "${record.name}": ${e.message || "corrupt design data"}`, "error");
+      return false;
+    } finally {
+      history.unlock();
+    }
     set({
       currentDesignId: record.id,
       designName: record.name,
@@ -393,6 +409,7 @@ export const useStampStore = create((set, get) => ({
     get().resetHistory();
     get().touchLayers();
     get().toast(`Loaded "${record.name}"`, "success");
+    return true;
   },
   removeDesign: (id) => {
     storage.deleteDesign(id);
@@ -417,11 +434,23 @@ export const useStampStore = create((set, get) => ({
   },
   importStampFile: async (file) => {
     const c = get().canvas;
-    if (!c || !file) return;
-    const data = parseStampFile(await file.text());
+    if (!c || !file) return false;
+    let data;
+    try {
+      data = parseStampFile(await file.text());
+    } catch (e) {
+      get().toast(`Import failed: ${e.message}`, "error");
+      return false;
+    }
     history.lock();
-    await deserialize(c, data.json);
-    history.unlock();
+    try {
+      await deserialize(c, data.json);
+    } catch (e) {
+      get().toast(`Import failed: ${e.message || "the .stamp file is corrupt"}`, "error");
+      return false;
+    } finally {
+      history.unlock();
+    }
     if (data.ink) {
       storage.setPrefs({ inkColor: data.ink });
       set({ inkColor: data.ink });
@@ -437,6 +466,7 @@ export const useStampStore = create((set, get) => ({
     get().resetHistory();
     get().touchLayers();
     get().toast(`Imported "${data.name || file.name}"`, "success");
+    return true;
   },
   refreshFields: (opts) => {
     const c = get().canvas;
@@ -450,9 +480,10 @@ export const useStampStore = create((set, get) => ({
   clips: storage.getClips(),
   refreshClips: () => set({ clips: storage.getClips() }),
   addClip: ({ name, json, thumb }) => {
-    const record = storage.saveClip({ name, json, thumb });
+    const { record, persisted } = storage.saveClip({ name, json, thumb });
     set({ clips: storage.getClips() });
-    get().toast(`Saved clip "${record.name}"`, "success");
+    if (persisted) get().toast(`Saved clip "${record.name}"`, "success");
+    else get().toast("Clip kept for this session only — browser storage is full", "error");
     return record;
   },
   removeClip: (id) => {
@@ -467,8 +498,14 @@ export const useStampStore = create((set, get) => ({
     const buf = storage.readAutosave();
     if (!c || !buf) return false;
     history.lock();
-    await deserialize(c, buf.json);
-    history.unlock();
+    try {
+      await deserialize(c, buf.json);
+    } catch (e) {
+      get().toast(`Could not restore the previous session: ${e.message || "corrupt autosave"}`, "error");
+      return false;
+    } finally {
+      history.unlock();
+    }
     get().resetHistory();
     get().touchLayers();
     set({ selected: null });

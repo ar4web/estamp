@@ -160,10 +160,20 @@ function enableMouseRotate(canvas, accent) {
   canvas.on("selection:updated", paintSel);
 }
 
-export function styleSelection(canvas, accent = "#c4a574") {
-  canvas.selectionColor = "rgba(196,165,116,0.16)";
+/** "#rrggbb" + opacity → "rgba(r, g, b, a)". Returns null for non-hex input. */
+export function hexToRgba(hex, alpha = 0.16) {
+  const m = /^#([0-9a-f]{6})$/i.exec(hex || "");
+  if (!m) return null;
+  const n = parseInt(m[1], 16);
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
+}
+
+export function styleSelection(canvas, accent = "#c4a574", lineWidth) {
+  canvas.selectionColor = hexToRgba(accent, 0.16) || "rgba(196,165,116,0.16)";
   canvas.selectionBorderColor = accent;
-  canvas.selectionLineWidth = 1;
+  // Only override the width when one is passed — re-styling the selection
+  // (e.g. after an accent change) must not clobber the saved width.
+  if (lineWidth != null) canvas.selectionLineWidth = lineWidth;
   enableMouseRotate(canvas, accent);
   wireShiftSnap(canvas);
 }

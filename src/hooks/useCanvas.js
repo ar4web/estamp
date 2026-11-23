@@ -15,7 +15,7 @@ export default function useCanvas(elRef) {
       selectionColor: store.selectionColor,
       selectionBorderWidth: store.selectionBorderWidth,
     });
-    styleSelection(canvas, store.selectionColor);
+    styleSelection(canvas, store.selectionColor, store.selectionBorderWidth);
 
     canvas.on("object:added", () => store.commit());
     canvas.on("object:removed", () => store.commit());

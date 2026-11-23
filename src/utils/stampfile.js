@@ -3,6 +3,8 @@ import { slugName } from "./print";
 
 export const STAMP_VERSION = 1;
 export const STAMP_TYPE = "estamp";
+// Refuse absurdly large payloads before JSON.parse puts the tab at risk.
+export const MAX_STAMP_BYTES = 25 * 1024 * 1024; // 25 MB of JSON text
 
 // .stamp files saved by older releases used the previous app name.
 // Keep accepting them so existing designs still open.
@@ -22,6 +24,9 @@ export function buildStampFile({ name, json, ink, canvasColor, company }) {
 }
 
 export function parseStampFile(text) {
+  if (typeof text === "string" && text.length > MAX_STAMP_BYTES) {
+    throw new Error("That .stamp file is too large to import");
+  }
   let data;
   try {
     data = typeof text === "string" ? JSON.parse(text) : text;
@@ -29,8 +34,17 @@ export function parseStampFile(text) {
     throw new Error("File is not valid JSON");
   }
   const validType = data && (data.type === STAMP_TYPE || LEGACY_STAMP_TYPES.includes(data.type));
-  if (!validType || !data.json) {
+  if (!validType || !data.json || typeof data.json !== "object") {
     throw new Error("Not an estamp .stamp file");
+  }
+  if (data.version != null) {
+    const v = Number(data.version);
+    if (!Number.isFinite(v) || v > STAMP_VERSION) {
+      throw new Error(`Unsupported .stamp version ${data.version} — please update estamp`);
+    }
+  }
+  if (data.json.objects != null && !Array.isArray(data.json.objects)) {
+    throw new Error("The .stamp file is missing its canvas objects");
   }
   return data;
 }

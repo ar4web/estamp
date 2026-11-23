@@ -6,19 +6,19 @@ A 100% client-side rubber stamp designer. No backend, no database, no API keys �
 everything (fonts, canvas, storage, export) runs in the browser and deploys as
 static files.
 
-Highlights: 16 categorised templates (single/double/triple ring, square, oval,
+Highlights: 22 categorised templates (single/double/triple ring, square, oval,
 logo), Arabic contextual shaping on straight and curved text, curve-anywhere
 text conversion, auto stamp generator, ink distress / rough-edge / aged-paper
 effects, transparent PNG + SVG export, selection-aware right-click tool menu,
 and a neutral dark **brass** UI theme that never competes with blue stamp ink.
 
-**Stack:** React 18/19 · Vite · Fabric.js v6 · Tailwind CSS v4 · Zustand · localStorage
+**Stack:** React 19 · Vite · Fabric.js v6 · Tailwind CSS v4 · Zustand · localStorage
 
 ---
 
 ## Quick start
 
-You only need **Node.js 18 or newer**. Check with `node -v`.
+You need **Node.js 20.19+ or 22.12+** (Vite 7 requirement). Check with `node -v`.
 
 ```bash
 npm install
@@ -38,6 +38,8 @@ backend service.
 | `npm run dev`     | Start the dev server with hot reload            |
 | `npm run build`   | Build static output into `dist/`                |
 | `npm run preview` | Preview the production build locally            |
+| `npm test`        | Run the Vitest unit-test suite                 |
+| `npm run test:watch` | Re-run tests on change                      |
 
 ---
 
@@ -123,7 +125,6 @@ npm run build
 ```
 index.html              HTML shell + Google Fonts preconnect
 vite.config.js          Vite config (base "./" for static hosts)
-tailwind.config.js      Tailwind v4, class-based dark mode
 src/
   main.jsx              React mount
   App.jsx               Top bar + sidebars + canvas layout
@@ -136,9 +137,10 @@ src/
     LeftSidebar/        Text, Shape, Image, Templates, Layers tools
     RightPanel/         Context-aware Text / Shape / Image properties
     CanvasArea/         Fabric canvas, zoom controls, mm/cm rulers
+  **/__tests__/      Vitest unit tests for the pure logic modules
     Modals/             Save-load gallery, template grid, export sizes
   store/useStampStore.js  Zustand state (nodes, viewport, history, toasts)
-  templates/            12 stamp blueprints (classic round, seal, PAID…)
+  templates/            22 stamp blueprints (classic round, seal, PAID…)
   utils/
     canvas.js           Fabric handlers, arc text, snapping, PNG/SVG export
     fonts.js            Dynamic Google Font loading (6 writing systems)
@@ -161,9 +163,15 @@ src/
 | `Delete` / `Backspace` | Remove selection |
 | `Ctrl + S` | Save design |
 | `Ctrl + E` | Export PNG |
-| `Ctrl + N` | Clear canvas |
+| `Ctrl + N` | Clear canvas (reserved by Chrome/Edge — use the menu there) |
 | `Ctrl + G` / `Ctrl + Shift + G` | Group / Ungroup |
 | `Ctrl + [` / `Ctrl + ]` | Send backward / Bring forward |
 | Arrows / `Shift` + Arrows | Nudge 1px / 10px |
 | Mouse wheel | Zoom 50%–400% |
 | `Space` + drag | Pan the canvas |
+
+---
+
+## License
+
+MIT — see [LICENSE](LICENSE).
