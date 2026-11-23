@@ -11,7 +11,6 @@ import {
   Palette,
   Pencil,
   RotateCcw,
-  Save,
   Square,
   Squircle,
   Sun,
@@ -478,14 +477,6 @@ export default function SettingsPanel() {
                 />
               </Row>
               <div className="flex gap-1.5">
-                <button type="button" className="btn btn-ok flex-1" onClick={() => st.saveCurrent()}>
-                  <Save size={14} aria-hidden /> Save
-                </button>
-                <button type="button" className="btn flex-1" onClick={() => st.saveAsNew()}>
-                  Copy
-                </button>
-              </div>
-              <div className="flex gap-1.5">
                 <button type="button" className="btn flex-1" onClick={() => st.exportStampFile()}>
                   Export .stamp
                 </button>
@@ -639,12 +630,20 @@ export default function SettingsPanel() {
             <Card title="Studio health">
               <div className="space-y-1.5">
                 <StatusRow
-                  ok={status.persistent}
-                  label={status.persistent ? "Browser storage on" : "Storage blocked"}
+                  ok={status.persistent && !status.degraded}
+                  label={
+                    !status.persistent
+                      ? "Storage blocked"
+                      : status.degraded
+                        ? "Storage full"
+                        : "Browser storage on"
+                  }
                   detail={
-                    status.persistent
-                      ? `${status.usedKb} KB used · ${status.designs} saved stamps`
-                      : "Session only — files will not survive a reload"
+                    !status.persistent
+                      ? "Session only — files will not survive a reload"
+                      : status.degraded
+                        ? "A write failed (quota) — new saves stay in memory; export a .stamp to be safe"
+                        : `${status.usedKb} KB used · ${status.designs} saved stamps`
                   }
                 />
                 <StatusRow

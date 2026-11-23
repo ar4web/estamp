@@ -6,6 +6,7 @@ import {
   FolderOpen,
   Moon,
   Redo2,
+  Save,
   Settings2,
   Sparkles,
   Stamp,
@@ -53,6 +54,7 @@ export default function TopBar() {
     redo,
     canUndo,
     canRedo,
+    saveCurrent,
   } = useStampStore();
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -164,6 +166,9 @@ export default function TopBar() {
         <ToolBtn label="Redo" hint="Ctrl+Shift+Z" onClick={redo} disabled={!canRedo}>
           <Redo2 size={14} />
         </ToolBtn>
+        <ToolBtn label="Save" hint="Ctrl+S" onClick={() => saveCurrent()} active={dirty}>
+          <Save size={14} />
+        </ToolBtn>
 
         <span className="mx-0.5 h-4 w-px" style={{ background: "var(--border)" }} />
 
@@ -187,11 +192,10 @@ export default function TopBar() {
             <button
               type="button"
               onClick={() => doExportPNG(3, { transparentOnly: true })}
-              className="btn h-7 px-2 text-[11px] font-medium"
+              className="btn btn-icon h-7 w-7 p-0"
               aria-label="Export PNG"
             >
               <Download size={14} />
-              <span className="hidden sm:inline">Export</span>
             </button>
           </Tooltip>
           <button

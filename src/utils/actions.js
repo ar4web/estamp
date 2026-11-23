@@ -245,10 +245,13 @@ export function clearCanvas(silent) {
   const canvas = C();
   if (!canvas) return;
   history.lock();
-  canvas.remove(...canvas.getObjects());
-  canvas.discardActiveObject();
-  canvas.requestRenderAll();
-  history.unlock();
+  try {
+    canvas.remove(...canvas.getObjects());
+    canvas.discardActiveObject();
+    canvas.requestRenderAll();
+  } finally {
+    history.unlock();
+  }
   S().commit();
   S().syncSelection();
   if (!silent) S().toast("Canvas cleared", "info");
@@ -262,8 +265,11 @@ export async function loadTemplate(idOrTemplate, { silent = false } = {}) {
   await ensureFonts(templateFonts(tpl));
   await waitForFonts();
   history.lock();
-  applyTemplate(canvas, tpl);
-  history.unlock();
+  try {
+    applyTemplate(canvas, tpl);
+  } finally {
+    history.unlock();
+  }
 
   // Figma/Canva behaviour: a template opens with its main text ready to edit.
   const primary = findPrimaryTextLayer(canvas);
@@ -416,11 +422,14 @@ function paintSpecs(specs, name, msg) {
   const canvas = C();
   if (!canvas) return;
   history.lock();
-  canvas.remove(...canvas.getObjects());
-  specs.forEach((sp) => canvas.add(spec(sp)));
-  canvas.discardActiveObject();
-  canvas.requestRenderAll();
-  history.unlock();
+  try {
+    canvas.remove(...canvas.getObjects());
+    specs.forEach((sp) => canvas.add(spec(sp)));
+    canvas.discardActiveObject();
+    canvas.requestRenderAll();
+  } finally {
+    history.unlock();
+  }
   S().commit();
   S().syncSelection();
   S().setDesignName(name);

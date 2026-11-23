@@ -1,15 +1,15 @@
 import { useState } from "react";
-import { RotateCcw, Sparkles } from "lucide-react";
+import { Droplet, Droplets, RotateCcw, Scroll, Waves, Zap } from "lucide-react";
 import useStampStore from "../../store/useStampStore";
 import { applyInkTexture, removeInkTexture, selectionKind } from "../../utils/canvas";
-import { Row } from "../ui";
+import { IconBtn } from "../ui";
 
 const PRESETS = [
-  { label: "Light", amount: 25, mode: "distress" },
-  { label: "Medium", amount: 45, mode: "distress" },
-  { label: "Heavy", amount: 70, mode: "distress" },
-  { label: "Rough", amount: 55, mode: "rough" },
-  { label: "Aged", amount: 50, mode: "aged" },
+  { label: "Light distress", hint: "25% ink wear", icon: Droplet, amount: 25, mode: "distress" },
+  { label: "Medium distress", hint: "45% ink wear", icon: Droplets, amount: 45, mode: "distress" },
+  { label: "Heavy distress", hint: "70% ink wear", icon: Waves, amount: 70, mode: "distress" },
+  { label: "Rough edges", hint: "Hand-cut border", icon: Zap, amount: 55, mode: "rough" },
+  { label: "Aged paper", hint: "Old, faded ink", icon: Scroll, amount: 50, mode: "aged" },
 ];
 
 export default function DistressTool() {
@@ -32,7 +32,7 @@ export default function DistressTool() {
       await applyInkTexture(canvas, selected, amount, mode);
       commit();
       syncSelection();
-      const names = { distress: "distress", rough: "rough edge", aged: "old paper" };
+      const names = { distress: "distress", rough: "rough edge", aged: "aged paper" };
       toast(`Applied ${names[mode]} at ${amount}%`, "success");
     } catch (err) {
       toast(`Effect failed: ${err.message}`, "error");
@@ -57,29 +57,28 @@ export default function DistressTool() {
   };
 
   return (
-    <div className="space-y-2.5">
-      <Row label="Ink wear" hint={selected ? "on selection" : "select a layer"}>
-        <div className="grid grid-cols-3 gap-1.5">
-          {PRESETS.map((p) => (
-            <button
-              key={p.label}
-              type="button"
-              disabled={busy}
-              onClick={() => apply(p.amount, p.mode)}
-              className="btn flex-col !gap-1 !px-0"
-              style={{ minHeight: 48 }}
-            >
-              <Sparkles size={13} />
-              <span className="text-[9px] font-semibold">{p.label}</span>
-            </button>
-          ))}
-        </div>
-      </Row>
+    <div className="space-y-2">
+      <div className="grid grid-cols-5 gap-1.5">
+        {PRESETS.map((p) => (
+          <IconBtn
+            key={p.label}
+            icon={p.icon}
+            label={p.label}
+            hint={p.hint}
+            disabled={busy}
+            onClick={() => apply(p.amount, p.mode)}
+          />
+        ))}
+      </div>
       {isTextured && (
-        <button type="button" disabled={busy} onClick={clean} className="btn btn-danger w-full text-[10px]">
-          <RotateCcw size={12} />
-          Restore vector
-        </button>
+        <IconBtn
+          icon={RotateCcw}
+          label="Restore clean vector"
+          hint="Undo the texture"
+          disabled={busy}
+          onClick={clean}
+          size={15}
+        />
       )}
     </div>
   );

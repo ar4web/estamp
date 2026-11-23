@@ -1,8 +1,8 @@
-import { FlipHorizontal, FlipVertical, Sparkles, Eraser } from "lucide-react";
+import { Contrast, Eraser, FlipHorizontal, FlipVertical, Frame, Sparkles } from "lucide-react";
 import useStampStore from "../../store/useStampStore";
 import { applyStampFilter, clearObjectClip, clipObjectToRing } from "../../utils/canvas";
 import { removeImageBackground, vectorizeImage } from "../../utils/image";
-import { Checkbox, Row, Slider } from "../ui";
+import { IconBtn, Slider } from "../ui";
 
 export default function ImageProperties({ obj }) {
   const canvas = useStampStore((s) => s.canvas);
@@ -19,17 +19,6 @@ export default function ImageProperties({ obj }) {
     touch();
   };
 
-  const toggleFilter = async (on) => {
-    try {
-      await applyStampFilter(canvas, obj, on);
-      commit();
-      touch();
-      toast(on ? "Stamp filter applied" : "Original image restored", "success");
-    } catch (e) {
-      toast(`Filter failed: ${e.message}`, "error");
-    }
-  };
-
   return (
     <div>
       <Slider
@@ -39,81 +28,91 @@ export default function ImageProperties({ obj }) {
         max={100}
         onChange={(v) => update({ opacity: v / 100 })}
         suffix="%"
+        resetValue={100}
       />
-      <Row label="Flip">
-        <div className="flex gap-1.5">
-          <button type="button" className="btn flex-1" aria-label="Flip horizontal" onClick={() => update({ flipX: !obj.flipX })} title="Flip Horizontal">
-            <FlipHorizontal size={15} /> Flip H
-          </button>
-          <button type="button" className="btn flex-1" aria-label="Flip vertical" onClick={() => update({ flipY: !obj.flipY })} title="Flip Vertical">
-            <FlipVertical size={15} /> Flip V
-          </button>
-        </div>
-      </Row>
+      <div className="grid grid-cols-4 gap-1.5">
+        <IconBtn
+          icon={FlipHorizontal}
+          label="Flip horizontal"
+          active={!!obj.flipX}
+          onClick={() => update({ flipX: !obj.flipX })}
+        />
+        <IconBtn
+          icon={FlipVertical}
+          label="Flip vertical"
+          active={!!obj.flipY}
+          onClick={() => update({ flipY: !obj.flipY })}
+        />
+        {obj.type === "image" && (
+          <>
+            <IconBtn
+              icon={Contrast}
+              label="Stamp filter"
+              hint="Grayscale + high contrast + background knock-out"
+              active={!!meta.stampFilter}
+              onClick={async () => {
+                try {
+                  await applyStampFilter(canvas, obj, !meta.stampFilter);
+                  commit();
+                  touch();
+                  toast(meta.stampFilter ? "Original image restored" : "Stamp filter applied", "success");
+                } catch (e) {
+                  toast(`Filter failed: ${e.message}`, "error");
+                }
+              }}
+            />
+            <IconBtn
+              icon={Frame}
+              label="Clip to frame"
+              hint="Fit the logo inside the outer ring"
+              active={!!meta.clippedToRing}
+              onClick={async () => {
+                try {
+                  if (meta.clippedToRing) clearObjectClip(canvas, obj);
+                  else await clipObjectToRing(canvas, obj);
+                  commit();
+                  touch();
+                } catch (e) {
+                  toast(e.message, "info");
+                }
+              }}
+            />
+          </>
+        )}
+      </div>
       {obj.type === "image" && (
-        <>
-          <Checkbox
-            label="Stamp filter"
-            checked={!!meta.stampFilter}
-            onChange={toggleFilter}
-          />
-          <p className="text-[12px] leading-relaxed" style={{ color: "var(--text-dim)" }}>
-            Grayscale + high contrast + knock-out background for a clean rubber
-            ink impression.
-          </p>
-          <Checkbox
-            label="Clip to frame"
-            checked={!!meta.clippedToRing}
-            onChange={async (on) => {
+        <div className="mt-1.5 grid grid-cols-2 gap-1.5">
+          <IconBtn
+            icon={Eraser}
+            label="Knock out background"
+            onClick={async () => {
               try {
-                if (on) await clipObjectToRing(canvas, obj);
-                else clearObjectClip(canvas, obj);
+                await removeImageBackground(canvas, obj);
                 commit();
                 touch();
+                toast("Background removed", "success");
               } catch (e) {
-                toast(e.message, "info");
+                toast(e.message, "error");
               }
             }}
-            hint="Fit the logo inside the outer ring."
           />
-          <Row label="Logo">
-            <div className="grid grid-cols-2 gap-1.5">
-              <button
-                type="button"
-                className="btn text-[10px]"
-                onClick={async () => {
-                  try {
-                    await removeImageBackground(canvas, obj);
-                    commit();
-                    touch();
-                    toast("Background removed", "success");
-                  } catch (e) {
-                    toast(e.message, "error");
-                  }
-                }}
-              >
-                <Eraser size={12} aria-hidden /> Knock out
-              </button>
-              <button
-                type="button"
-                className="btn text-[10px]"
-                onClick={async () => {
-                  try {
-                    const ink = useStampStore.getState().inkColor;
-                    await vectorizeImage(canvas, obj, ink);
-                    commit();
-                    useStampStore.getState().syncSelection();
-                    toast("Converted to vector — recolor with Ink", "success");
-                  } catch (e) {
-                    toast(e.message, "error");
-                  }
-                }}
-              >
-                <Sparkles size={12} aria-hidden /> To SVG
-              </button>
-            </div>
-          </Row>
-        </>
+          <IconBtn
+            icon={Sparkles}
+            label="Convert to vector"
+            hint="Recolor with Ink afterwards"
+            onClick={async () => {
+              try {
+                const ink = useStampStore.getState().inkColor;
+                await vectorizeImage(canvas, obj, ink);
+                commit();
+                useStampStore.getState().syncSelection();
+                toast("Converted to vector — recolor with Ink", "success");
+              } catch (e) {
+                toast(e.message, "error");
+              }
+            }}
+          />
+        </div>
       )}
     </div>
   );

@@ -16,7 +16,6 @@ import useStampStore from "../../store/useStampStore";
 import { selectionKind } from "../../utils/canvas";
 import { objectInkHex } from "../../utils/color";
 import { bringForward, sendBackwards } from "../../utils/actions";
-import { Empty } from "../ui";
 import Tooltip from "../Tooltip";
 
 const ICON = {
@@ -44,7 +43,13 @@ export default function LayersPanel() {
   const active = canvas.getActiveObject();
 
   if (!objects.length)
-    return <Empty icon={Layers} title="No layers yet" hint="Add text, a shape or a logo to begin." />;
+    return (
+      <Tooltip label="No layers yet" hint="Add text, a shape or a logo to begin" side="top">
+        <div className="grid place-items-center py-8">
+          <Layers size={26} style={{ color: "var(--text-mute)" }} aria-hidden />
+        </div>
+      </Tooltip>
+    );
 
   const select = (obj) => {
     if (obj.lockedLayer) return;
@@ -114,6 +119,8 @@ export default function LayersPanel() {
               onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), select(obj))}
               className="flex cursor-pointer items-center gap-1.5 border px-1.5 py-1"
               aria-pressed={isActive}
+              aria-label={obj.name || kind}
+              title={obj.name || kind}
               style={{
                 borderColor: isActive ? "var(--accent)" : "var(--border-soft)",
                 background: isActive ? "var(--bg-raised)" : "var(--bg-sunken)",
@@ -121,6 +128,7 @@ export default function LayersPanel() {
               }}
             >
               <Icon size={13} style={{ color: objectInkHex(obj) || "var(--text-dim)" }} className="shrink-0" />
+              <span className="min-w-0 flex-1" aria-hidden />
               <span
                 className="h-2.5 w-2.5 shrink-0 border"
                 style={{
@@ -128,7 +136,6 @@ export default function LayersPanel() {
                   borderColor: "var(--border-soft)",
                 }}
               />
-              <span className="min-w-0 flex-1 truncate text-[11px] font-medium">{obj.name || kind}</span>
               <Mini
                 title="Move up"
                 onClick={() => {

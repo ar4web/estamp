@@ -2,8 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import {
   AlignVerticalSpaceAround,
   Check,
-  ChevronDown,
-  ChevronUp,
   ChevronsLeftRight,
   Circle,
   Droplet,
@@ -14,12 +12,50 @@ import {
   Scaling,
   Type,
 } from "lucide-react";
+import Tooltip from "./Tooltip";
 
 const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
 const round = (v, step) => {
   const d = (String(step).split(".")[1] || "").length;
   return Number(v.toFixed(d));
 };
+
+/**
+ * Icon-only button with a hover/focus tooltip — the shared primitive for the
+ * icon-first tool panels. The visible UI carries no text; the tooltip and the
+ * aria-label do the labelling.
+ */
+export function IconBtn({
+  icon: Icon,
+  label,
+  hint,
+  onClick,
+  active,
+  side = "top",
+  size = 16,
+  disabled,
+  className = "",
+}) {
+  return (
+    <Tooltip label={label} hint={hint} side={side} className="w-full">
+      <button
+        type="button"
+        className={`tool-icon-btn ${active ? "is-on" : ""} ${className}`}
+        aria-label={label}
+        aria-pressed={active ?? undefined}
+        disabled={disabled}
+        onClick={onClick}
+      >
+        <Icon size={size} strokeWidth={1.75} aria-hidden />
+      </button>
+    </Tooltip>
+  );
+}
+
+/** Hairline separator used to break icon-only panels into groups. */
+export function Divider() {
+  return <div className="tool-divider" role="separator" aria-hidden />;
+}
 
 export function Row({ label, hint, children, className = "" }) {
   return (
@@ -36,27 +72,6 @@ export function Row({ label, hint, children, className = "" }) {
       )}
       {children}
     </div>
-  );
-}
-
-export function Fold({ title, hint, open = true, children }) {
-  const [on, setOn] = useState(open);
-  return (
-    <section className="fold">
-      <button
-        type="button"
-        className={`fold-head ${on ? "is-open" : ""}`}
-        aria-expanded={on}
-        onClick={() => setOn((v) => !v)}
-      >
-        <span className="label">{title}</span>
-        <span className="fold-meta">
-          {hint && <span className="fold-hint">{hint}</span>}
-          {on ? <ChevronUp size={12} aria-hidden /> : <ChevronDown size={12} aria-hidden />}
-        </span>
-      </button>
-      {on && <div className="fold-body">{children}</div>}
-    </section>
   );
 }
 
@@ -164,7 +179,8 @@ const SLIDER_ICONS = {
 };
 
 /**
- * One tight 28px row: label + icon | slim slider | scrubbable value.
+ * One tight 28px row: icon | slim slider | scrubbable value.
+ * Icon-only — no visible label; the icon + aria-label + tooltip carry meaning.
  * Optional preset chips, double-click reset, live badge while dragging.
  */
 export function Slider({
@@ -269,14 +285,15 @@ export function Slider({
   return (
     <div className="slider-control">
       <div
-        className="slider-row"
+        className="slider-row slider-row-icon"
         onDoubleClick={reset}
-        title={resetValue !== undefined ? "Double-click to reset" : undefined}
+        title={resetValue !== undefined ? `${label} — double-click to reset` : label}
       >
-        <span className="slider-label" title={label}>
-          {ResolvedIcon && <ResolvedIcon size={11} aria-hidden />}
-          <span className="truncate">{label}</span>
-        </span>
+        <Tooltip label={label} side="top" delay={150}>
+          <span className="slider-label slider-icon" aria-hidden>
+            {ResolvedIcon ? <ResolvedIcon size={13} /> : null}
+          </span>
+        </Tooltip>
         <input
           type="range"
           aria-label={label}
@@ -303,7 +320,7 @@ export function Slider({
         </div>
         {dragging && (
           <span className="slider-badge" role="status">
-            {label}: {shown}{suffix}
+            {shown}{suffix}
           </span>
         )}
       </div>
@@ -325,57 +342,3 @@ export function Slider({
   );
 }
 
-/** Two related sliders side by side so the inspector needs less scrolling. */
-export function SliderGrid({ children, className = "" }) {
-  return <div className={`slider-grid ${className}`}>{children}</div>;
-}
-
-export function SegButton({ options, value, onChange, label }) {
-  return (
-    <div className="mb-3">
-      {label && <div className="label mb-1.5">{label}</div>}
-      <div
-        className="flex border"
-        style={{ borderColor: "var(--border-soft)", background: "var(--bg-sunken)" }}
-        role="tablist"
-      >
-        {options.map((o, i) => {
-          const on = value === o.value;
-          return (
-            <button
-              type="button"
-              key={o.value}
-              role="tab"
-              aria-selected={on}
-              onClick={() => onChange(o.value)}
-              title={o.title || o.label}
-              className="flex flex-1 items-center justify-center gap-1 px-2 text-[10px] font-semibold"
-              style={{
-                minHeight: "var(--ctl-h)",
-                background: on ? "var(--accent)" : "transparent",
-                color: on ? "var(--on-accent)" : "var(--text-dim)",
-                borderLeft: i ? "1px solid var(--border-soft)" : "none",
-              }}
-            >
-              {o.icon || o.label}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-export function Empty({ icon: Icon, title, hint }) {
-  return (
-    <div className="flex flex-col items-center justify-center gap-2 px-5 py-10 text-center">
-      {Icon && <Icon size={24} style={{ color: "var(--text-dim)" }} />}
-      <p className="text-[12px] font-semibold">{title}</p>
-      {hint && (
-        <p className="text-[10px] leading-relaxed" style={{ color: "var(--text-dim)" }}>
-          {hint}
-        </p>
-      )}
-    </div>
-  );
-}

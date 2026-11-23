@@ -16,6 +16,10 @@ const PALETTE_KEY = "stamp_palettes";
 const COMPANY_KEY = "stamp_company";
 
 const memory = new Map();
+// Set to true when a write to the browser backend fails (quota or SecurityError).
+// From then on the memory map is the source of truth for reads too, so the
+// in-memory fallback stays coherent instead of reading stale backend values.
+let backendBroken = false;
 
 function detectStorage() {
   try {
@@ -23,7 +27,19 @@ function detectStorage() {
     window.localStorage.setItem(test, "1");
     window.localStorage.removeItem(test);
     return window.localStorage;
-  } catch {
+  } catch (e) {
+    // A full disk/quota is not the same as storage being disabled: the
+    // backend still reads fine, it just rejects new bytes. Keep it so saves
+    // fail loudly (persisted=false) instead of silently going session-only.
+    const isQuota = e?.name === "QuotaExceededError" || e?.code === 22;
+    if (isQuota) {
+      try {
+        window.localStorage.getItem("__estamp_test__");
+        return window.localStorage;
+      } catch {
+        return null;
+      }
+    }
     return null;
   }
 }
@@ -34,7 +50,7 @@ export const storageAvailable = () => !!backend;
 
 const rawGet = (key) => {
   try {
-    if (backend) return backend.getItem(key);
+    if (backend && !backendBroken) return backend.getItem(key);
   } catch {
     /* fall through to memory */
   }
@@ -43,10 +59,13 @@ const rawGet = (key) => {
 
 const rawSet = (key, value) => {
   memory.set(key, value);
+  if (!backend) return true; // memory-only mode (storage blocked) — always succeeds
+  if (backendBroken) return false; // known failure — memory mirror only
   try {
-    if (backend) backend.setItem(key, value);
+    backend.setItem(key, value);
     return true;
   } catch {
+    backendBroken = true;
     return false;
   }
 };
@@ -84,8 +103,8 @@ export function saveDesign({ id, name, json, thumb }) {
   };
   if (existing >= 0) designs[existing] = record;
   else designs.unshift(record);
-  write(DESIGN_KEY, designs.slice(0, 40));
-  return record;
+  const persisted = write(DESIGN_KEY, designs.slice(0, 40));
+  return { record, persisted };
 }
 
 export function deleteDesign(id) {
@@ -138,8 +157,8 @@ export function saveClip({ id, name, json, thumb }) {
     created: now,
   };
   clips.unshift(record);
-  write(CLIP_KEY, clips.slice(0, 24));
-  return record;
+  const persisted = write(CLIP_KEY, clips.slice(0, 24));
+  return { record, persisted };
 }
 
 export function deleteClip(id) {
@@ -184,8 +203,8 @@ export function savePalette({ id, name, colors }) {
     created: now,
   };
   palettes.unshift(record);
-  write(PALETTE_KEY, palettes.slice(0, 16));
-  return record;
+  const persisted = write(PALETTE_KEY, palettes.slice(0, 16));
+  return { record, persisted };
 }
 
 export function deletePalette(id) {
@@ -225,6 +244,7 @@ export function storageStatus() {
   }
   return {
     persistent: storageAvailable(),
+    degraded: backendBroken,
     designs: designs.length,
     autosave: !!(autosave && autosave.json && (autosave.json.objects || []).length),
     autosaveAt: autosave?.at || null,

@@ -59,8 +59,8 @@ export default function SaveLoadModal() {
             const file = e.target.files?.[0];
             e.target.value = "";
             if (!file) return;
-            await importStampFile(file);
-            closeModal();
+            const ok = await importStampFile(file);
+            if (ok) closeModal();
           }}
         />
       </div>

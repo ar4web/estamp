@@ -15,14 +15,16 @@ export function useIsMobile(breakpoint = 768) {
   return mobile;
 }
 
+/**
+ * Anchored side panel. Fixed width (no drag-to-resize); the only chrome is a
+ * collapse chevron — no title text or headings.
+ */
 export default function DraggablePanel({
   title,
-  icon: Icon,
   width = 300,
   side = "left",
   open,
   onClose,
-  actions,
   children,
   pad = true,
   background,
@@ -30,8 +32,6 @@ export default function DraggablePanel({
 }) {
   const mobile = useIsMobile();
   const hoverTimer = useRef(null);
-  const [dockWidth, setDockWidth] = useState(width);
-  const drag = useRef(null);
 
   useEffect(() => () => clearTimeout(hoverTimer.current), []);
 
@@ -41,24 +41,6 @@ export default function DraggablePanel({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [mobile, open, onClose]);
-
-  const startResize = (e) => {
-    e.preventDefault();
-    drag.current = { startX: e.clientX, startW: dockWidth };
-    const onMove = (ev) => {
-      if (!drag.current) return;
-      const dx = ev.clientX - drag.current.startX;
-      const next = side === "right" ? drag.current.startW - dx : drag.current.startW + dx;
-      setDockWidth(Math.min(480, Math.max(280, next)));
-    };
-    const onUp = () => {
-      drag.current = null;
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mouseup", onUp);
-    };
-    window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseup", onUp);
-  };
 
   const collapseBtn = (
     <button
@@ -80,21 +62,11 @@ export default function DraggablePanel({
 
   const header = (
     <div
-      className="flex h-10 shrink-0 items-center gap-1.5 border-b px-2"
+      className="flex h-8 shrink-0 items-center justify-between border-b px-1"
       style={{ borderColor: "var(--border)", background: "var(--bg-raised)" }}
     >
-      {side === "right" && !mobile && collapseBtn}
-      {actions ? (
-        <div className="flex min-w-0 flex-1 items-center justify-end gap-0.5">{actions}</div>
-      ) : (
-        <>
-          {Icon && <Icon size={14} style={{ color: "var(--accent)" }} aria-hidden />}
-          <h2 className="flex-1 truncate text-[10px] font-semibold uppercase tracking-[0.08em]">
-            {title}
-          </h2>
-        </>
-      )}
-      {(side !== "right" || mobile) && collapseBtn}
+      {side === "right" && !mobile ? collapseBtn : <span aria-hidden />}
+      {(side !== "right" || mobile) ? collapseBtn : <span aria-hidden />}
     </div>
   );
 
@@ -152,26 +124,13 @@ export default function DraggablePanel({
   }
 
   return (
-    <div className="relative h-full shrink-0" style={{ width: dockWidth }}>
-      <aside
-        aria-label={title}
-        className={`flex h-full flex-col overflow-hidden border ${className}`}
-        style={{ background: background || "var(--bg-panel)", borderColor: "var(--border)" }}
-      >
-        {header}
-        {body}
-      </aside>
-      <div
-        role="separator"
-        aria-orientation="vertical"
-        aria-label={`Resize ${title}`}
-        onMouseDown={startResize}
-        className="absolute top-0 z-10 h-full w-2 cursor-ew-resize"
-        style={{
-          [side === "right" ? "left" : "right"]: 0,
-          background: "transparent",
-        }}
-      />
-    </div>
+    <aside
+      aria-label={title}
+      className={`flex h-full shrink-0 flex-col overflow-hidden border ${className}`}
+      style={{ width, background: background || "var(--bg-panel)", borderColor: "var(--border)" }}
+    >
+      {header}
+      {body}
+    </aside>
   );
 }

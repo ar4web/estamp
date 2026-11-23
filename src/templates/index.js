@@ -49,8 +49,6 @@ export const TEMPLATES = [
   annotate(jeddahStamp, "Arabic", 44),
 ].sort((a, b) => a.order - b.order);
 
-export const TEMPLATE_CATEGORIES = ["Round", "Square & Rect", "Oval & Badge", "Logo", "Arabic"];
-
 export const getTemplate = (id) => TEMPLATES.find((t) => t.id === id) || TEMPLATES[0];
 
 export default TEMPLATES;
