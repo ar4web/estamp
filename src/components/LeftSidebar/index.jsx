@@ -1,9 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
-  FolderOpen,
   LayoutTemplate,
-  Save,
-  Settings2,
   X,
 } from "lucide-react";
 import useStampStore from "../../store/useStampStore";
@@ -15,10 +12,6 @@ export default function LeftSidebar() {
   const pulse = useStampStore((s) => s.pulseTemplates);
   const leftOpen = useStampStore((s) => s.leftOpen);
   const toggleLeft = useStampStore((s) => s.toggleLeft);
-  const saveCurrent = useStampStore((s) => s.saveCurrent);
-  const dirty = useStampStore((s) => s.dirty);
-  const openModal = useStampStore((s) => s.openModal);
-  const toggleSettings = useStampStore((s) => s.toggleSettings);
   const mobile = useIsMobile();
 
   const [desktopOpen, setDesktopOpen] = useState(false);
@@ -89,51 +82,6 @@ export default function LeftSidebar() {
     closeTimer.current = setTimeout(() => setDesktopOpen(false), 220);
   };
 
-  // Rail bottom: the housekeeping actions that used to live in the top bar.
-  const bottomActions = (side) => [
-    {
-      id: "save",
-      icon: Save,
-      label: "Save",
-      hint: "Ctrl+S",
-      onClick: () => saveCurrent(),
-      dot: dirty,
-    },
-    {
-      id: "library",
-      icon: FolderOpen,
-      label: "My Stamps",
-      hint: "Library · .stamp files",
-      onClick: () => openModal("saveload"),
-    },
-    {
-      id: "settings",
-      icon: Settings2,
-      label: "Preferences",
-      hint: "Ctrl+K",
-      onClick: () => toggleSettings(),
-    },
-  ].map((a) => (
-    <Tooltip key={a.id} label={a.label} hint={a.hint} side={side}>
-      <button
-        type="button"
-        className="tool-rail-btn relative"
-        aria-label={a.label}
-        title={a.label}
-        onClick={a.onClick}
-      >
-        <a.icon size={16} strokeWidth={1.75} aria-hidden />
-        {a.dot ? (
-          <span
-            className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full"
-            style={{ background: "var(--accent)" }}
-            aria-hidden
-          />
-        ) : null}
-      </button>
-    </Tooltip>
-  ));
-
   const templatesBtn = ({ mobileMode = false } = {}) => (
     <Tooltip
       label="Templates"
@@ -178,7 +126,6 @@ export default function LeftSidebar() {
         >
           <div className="tool-mobile-rail" role="toolbar" aria-label="Templates">
             {templatesBtn({ mobileMode: true })}
-            {bottomActions("top")}
             <button
               type="button"
               className="tool-mobile-close"
@@ -208,8 +155,6 @@ export default function LeftSidebar() {
     >
       <nav className="tool-rail" aria-label="Templates" role="toolbar">
         <div className="tool-rail-list">{templatesBtn()}</div>
-        <div className="tool-rail-spacer" />
-        <div className="tool-rail-bottom">{bottomActions("right")}</div>
       </nav>
 
       {flyoutOpen && (

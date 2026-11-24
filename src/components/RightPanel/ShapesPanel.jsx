@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   Circle,
   Egg,
@@ -15,7 +14,7 @@ import {
 import useStampStore from "../../store/useStampStore";
 import { CANVAS_SIZE, buildShapeWithDoubleBorder } from "../../utils/canvas";
 import { addObject } from "../../utils/actions";
-import { Divider, IconBtn, Slider } from "../ui";
+import { Divider, IconBtn } from "../ui";
 import DistressTool from "./DistressTool";
 
 const C = CANVAS_SIZE / 2;
@@ -32,15 +31,21 @@ const SHAPES = [
   { id: "line", label: "Horizontal rule", icon: Minus, spec: { type: "line", x1: C - 170, y1: C, x2: C + 170, y2: C } },
 ];
 
+/**
+ * Icons-only shapes insert. The placement sliders (Stroke weight / Size /
+ * Gap) live in THE one slider stack above; this block carries nothing but
+ * icons and the double/fill/dash placement toggles.
+ */
 export default function ShapesPanel() {
   const inkColor = useStampStore((s) => s.inkColor);
   const toast = useStampStore((s) => s.toast);
-  const [strokeWidth, setStrokeWidth] = useState(6);
-  const [scale, setScale] = useState(100);
-  const [double, setDouble] = useState(false);
-  const [gap, setGap] = useState(8);
-  const [filled, setFilled] = useState(false);
-  const [dashed, setDashed] = useState(false);
+  const strokeWidth = useStampStore((s) => s.shapeStroke);
+  const scale = useStampStore((s) => s.shapeScale);
+  const double = useStampStore((s) => s.shapeDouble);
+  const gap = useStampStore((s) => s.shapeGap);
+  const filled = useStampStore((s) => s.shapeFilled);
+  const dashed = useStampStore((s) => s.shapeDashed);
+  const setShapeDefaults = useStampStore((s) => s.setShapeDefaults);
 
   const place = (shape) => {
     const base = { ...shape.spec, cx: C, cy: C, stroke: inkColor, strokeWidth, name: shape.label };
@@ -64,33 +69,29 @@ export default function ShapesPanel() {
         ))}
       </div>
 
-      <Slider label="Stroke" value={strokeWidth} min={1} max={20} onChange={setStrokeWidth} suffix="px" />
-      <Slider label="Size" value={scale} min={30} max={120} onChange={setScale} suffix="%" />
-
-      <div className="mb-3 grid grid-cols-3 gap-1.5">
+      <div className="mb-1 grid grid-cols-3 gap-1.5">
         <IconBtn
           icon={SquareSquare}
           label="Double border"
           hint="Outer + inner ring"
           active={double}
-          onClick={() => setDouble((v) => !v)}
+          onClick={() => setShapeDefaults({ shapeDouble: !double })}
         />
         <IconBtn
           icon={(p) => <Square {...p} fill="currentColor" stroke="none" />}
           label="Solid fill"
           hint="Fill the shape with ink"
           active={filled}
-          onClick={() => setFilled((v) => !v)}
+          onClick={() => setShapeDefaults({ shapeFilled: !filled })}
         />
         <IconBtn
           icon={SquareDashed}
           label="Dashed stroke"
           hint="Broken dash outline"
           active={dashed}
-          onClick={() => setDashed((v) => !v)}
+          onClick={() => setShapeDefaults({ shapeDashed: !dashed })}
         />
       </div>
-      {double && <Slider label="Gap" value={gap} min={2} max={40} onChange={setGap} suffix="px" />}
 
       <Divider />
       <DistressTool />

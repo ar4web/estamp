@@ -4,7 +4,6 @@ import {
   bringForward,
   clearCanvas,
   deleteSelection,
-  doExportPNG,
   duplicateSelection,
   groupSelection,
   nudge,
@@ -46,15 +45,6 @@ export default function useKeyboard() {
             e.preventDefault();
             duplicateSelection();
             return;
-          case "s":
-            e.preventDefault();
-            if (e.shiftKey) store.exportStampFile();
-            else store.saveCurrent();
-            return;
-          case "e":
-            e.preventDefault();
-            doExportPNG(3);
-            return;
           case "n":
             e.preventDefault();
             clearCanvas();
@@ -62,10 +52,6 @@ export default function useKeyboard() {
           case "a":
             e.preventDefault();
             selectAll();
-            return;
-          case "k":
-            e.preventDefault();
-            store.toggleSettings();
             return;
           case "g":
             e.preventDefault();

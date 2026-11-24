@@ -1,37 +1,3 @@
-export const TEXT_PHRASES = [
-  { group: "Office", items: ["APPROVED", "RECEIVED", "PAID", "COPY", "ORIGINAL", "VERIFIED", "CONFIDENTIAL", "DRAFT"] },
-  {
-    group: "Saudi / Arabic",
-    items: [
-      "الرياض",
-      "RIYADH",
-      "جدة",
-      "JEDDAH",
-      "الدمام",
-      "DAMMAM",
-      "مكة المكرمة",
-      "المدينة المنورة",
-      "المملكة العربية السعودية",
-      "KSA",
-      "SAUDI ARABIA",
-    ],
-  },
-  {
-    group: "Post & register",
-    items: [
-      "P.O. BOX",
-      "الرمز البريدي",
-      "ZIP",
-      "POSTAL CODE",
-      "س.ت",
-      "C.R.",
-      "ض.ق.م",
-      "VAT",
-      "سجل تجاري",
-    ],
-  },
-];
-
 export const STAMP_LOOKS = [
   { id: "round-arc", label: "Round arc", shape: "round" },
   { id: "round-center", label: "Round centre", shape: "round" },

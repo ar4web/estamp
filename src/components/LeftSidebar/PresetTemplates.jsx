@@ -207,7 +207,7 @@ export default function PresetTemplates() {
           />
         ))}
       </div>
-      <div className="chip-grid compact">
+      <div className="flex flex-wrap gap-1">
         {DATE_FORMATS.map((f) => (
           <button
             key={f.id}

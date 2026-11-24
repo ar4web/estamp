@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
-import { Download, Image as ImageIcon } from "lucide-react";
+import { Image as ImageIcon } from "lucide-react";
 import { TEMPLATES } from "../../templates";
-import { downloadURL, renderTemplateThumb } from "../../utils/canvas";
+import { renderTemplateThumb } from "../../utils/canvas";
 import { loadTemplate } from "../../utils/actions";
-import useStampStore from "../../store/useStampStore";
 import PresetTemplates from "./PresetTemplates";
 
 const cache = new Map();
@@ -47,19 +46,6 @@ export function useTemplateThumbs(list = TEMPLATES) {
 
 /** Compact card: three of these fit on one row of the 300px drawer. */
 export function TemplateCard({ tpl, thumb, onClick }) {
-  const toast = useStampStore((s) => s.toast);
-
-  const quickExport = async (e) => {
-    e.stopPropagation();
-    try {
-      const url = thumb || (await renderTemplateThumb(tpl, 1200));
-      downloadURL(url, `template-${tpl.id}.png`);
-      toast(`Downloaded ${tpl.name}`, "success");
-    } catch (err) {
-      toast(`Export failed: ${err.message}`, "error");
-    }
-  };
-
   return (
     <div
       className="group relative overflow-hidden border"
@@ -90,22 +76,6 @@ export function TemplateCard({ tpl, thumb, onClick }) {
             />
           )}
         </span>
-      </button>
-
-      {/* quick PNG download without loading the template */}
-      <button
-        type="button"
-        onClick={quickExport}
-        title="Download this template as PNG"
-        aria-label={`Download ${tpl.name} as PNG`}
-        className="absolute right-0.5 top-0.5 grid h-5 w-5 place-items-center border opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100"
-        style={{
-          background: "var(--bg-panel)",
-          borderColor: "var(--border)",
-          color: "var(--text-dim)",
-        }}
-      >
-        <Download size={10} />
       </button>
 
       {tpl.logo && (

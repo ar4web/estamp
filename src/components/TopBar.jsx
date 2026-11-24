@@ -1,18 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  ChevronDown,
-  Download,
-  FileImage,
   Moon,
   Redo2,
-  Sparkles,
   Stamp,
   Sun,
   Undo2,
 } from "lucide-react";
 import useStampStore from "../store/useStampStore";
 import { APP_NAME } from "../config";
-import { doExportJPG, doExportPNG, doExportSVG } from "../utils/actions";
 import { resolveTheme } from "../utils/theme";
 import Tooltip from "./Tooltip";
 
@@ -44,39 +39,19 @@ export default function TopBar() {
     toggleTheme,
     designName,
     setDesignName,
-    dirty,
-    openModal,
     undo,
     redo,
     canUndo,
     canRedo,
   } = useStampStore();
 
-  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(designName);
-  const dropdownRef = useRef(null);
   const titleRef = useRef(null);
 
   useEffect(() => {
     if (!editing) setDraft(designName);
   }, [designName, editing]);
-
-  useEffect(() => {
-    if (!dropdownOpen) return;
-    const handleOutsideClick = (e) => {
-      if (!dropdownRef.current?.contains(e.target)) setDropdownOpen(false);
-    };
-    const handleEsc = (e) => {
-      if (e.key === "Escape") setDropdownOpen(false);
-    };
-    window.addEventListener("mousedown", handleOutsideClick);
-    window.addEventListener("keydown", handleEsc);
-    return () => {
-      window.removeEventListener("mousedown", handleOutsideClick);
-      window.removeEventListener("keydown", handleEsc);
-    };
-  }, [dropdownOpen]);
 
   const commitTitle = () => {
     const next = draft.trim() || "Untitled stamp";
@@ -144,13 +119,6 @@ export default function TopBar() {
               {designName}
             </button>
           )}
-          {dirty && (
-            <span
-              className="h-1.5 w-1.5 shrink-0 rounded-full"
-              style={{ background: "var(--accent)" }}
-              title="Unsaved changes"
-            />
-          )}
         </div>
       </div>
 
@@ -170,125 +138,6 @@ export default function TopBar() {
         >
           {resolveTheme(theme) === "dark" ? <Sun size={14} /> : <Moon size={14} />}
         </ToolBtn>
-
-        <span className="mx-0.5 h-4 w-px" style={{ background: "var(--border)" }} />
-
-        <div ref={dropdownRef} className="relative flex items-stretch">
-          <Tooltip label="Export PNG" hint="Stamp only · no paper" shortcut="Ctrl+E" side="bottom">
-            <button
-              type="button"
-              onClick={() => doExportPNG(3, { transparentOnly: true })}
-              className="btn btn-icon h-7 w-7 p-0"
-              aria-label="Export PNG"
-            >
-              <Download size={14} />
-            </button>
-          </Tooltip>
-          <button
-            type="button"
-            onClick={() => setDropdownOpen((v) => !v)}
-            aria-label="Select export format"
-            aria-expanded={dropdownOpen}
-            className="btn h-7 !px-1"
-            title="Choose export format"
-          >
-            <ChevronDown
-              size={13}
-              className={`transition-transform duration-150 ${dropdownOpen ? "rotate-180" : ""}`}
-            />
-          </button>
-          {dropdownOpen && (
-            <div
-              role="menu"
-              className="toast-in absolute right-0 top-[calc(100%+6px)] z-[85] w-56 rounded border p-1.5 shadow-2xl"
-              style={{
-                background: "var(--bg-panel)",
-                borderColor: "var(--border)",
-              }}
-            >
-              <div
-                className="mb-1 border-b px-2 py-1 text-[9px] font-bold uppercase tracking-wider"
-                style={{ borderColor: "var(--border-soft)", color: "var(--text-mute)" }}
-              >
-                Export
-              </div>
-              <button
-                type="button"
-                role="menuitem"
-                onClick={() => {
-                  doExportPNG(3, { transparentOnly: true });
-                  setDropdownOpen(false);
-                }}
-                className="flex w-full items-center gap-2.5 rounded px-2.5 py-1.5 text-left hover:bg-[var(--bg-raised)]"
-              >
-                <div className="grid h-6 w-6 shrink-0 place-items-center rounded" style={{ background: "var(--accent-dim)", color: "var(--accent)" }}>
-                  <FileImage size={14} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between text-[11px] font-semibold">
-                    <span>PNG Transparent</span>
-                    <span className="font-mono text-[9px]" style={{ color: "var(--text-mute)" }}>1800px</span>
-                  </div>
-                  <div className="truncate text-[9px]" style={{ color: "var(--text-dim)" }}>Stamp only, no paper</div>
-                </div>
-              </button>
-              <button
-                type="button"
-                role="menuitem"
-                onClick={() => {
-                  doExportSVG({ transparentOnly: true });
-                  setDropdownOpen(false);
-                }}
-                className="flex w-full items-center gap-2.5 rounded px-2.5 py-1.5 text-left hover:bg-[var(--bg-raised)]"
-              >
-                <div className="grid h-6 w-6 shrink-0 place-items-center rounded" style={{ background: "var(--bg-sunken)", color: "var(--text-dim)" }}>
-                  <Sparkles size={14} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between text-[11px] font-semibold">
-                    <span>SVG Vector</span>
-                    <span className="font-mono text-[9px]" style={{ color: "var(--text-mute)" }}>Vector</span>
-                  </div>
-                  <div className="truncate text-[9px]" style={{ color: "var(--text-dim)" }}>Scalable for print</div>
-                </div>
-              </button>
-              <button
-                type="button"
-                role="menuitem"
-                onClick={() => {
-                  doExportJPG(3, { trim: false });
-                  setDropdownOpen(false);
-                }}
-                className="flex w-full items-center gap-2.5 rounded px-2.5 py-1.5 text-left hover:bg-[var(--bg-raised)]"
-              >
-                <div className="grid h-6 w-6 shrink-0 place-items-center rounded" style={{ background: "var(--bg-sunken)", color: "var(--text-dim)" }}>
-                  <Download size={14} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between text-[11px] font-semibold">
-                    <span>JPG Photo</span>
-                    <span className="font-mono text-[9px]" style={{ color: "var(--text-mute)" }}>1800px</span>
-                  </div>
-                  <div className="truncate text-[9px]" style={{ color: "var(--text-dim)" }}>White canvas background</div>
-                </div>
-              </button>
-              <div className="my-1 border-t pt-1" style={{ borderColor: "var(--border-soft)" }}>
-                <button
-                  type="button"
-                  role="menuitem"
-                  onClick={() => {
-                    setDropdownOpen(false);
-                    openModal("download");
-                  }}
-                  className="flex w-full items-center justify-center rounded px-2.5 py-1.5 text-[10px] font-semibold"
-                  style={{ color: "var(--text-dim)" }}
-                >
-                  More options
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
       </div>
     </header>
   );

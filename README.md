@@ -3,14 +3,15 @@
 https://ar4web.github.io/estamp/
 
 A 100% client-side rubber stamp designer. No backend, no database, no API keys —
-everything (fonts, canvas, storage, export) runs in the browser and deploys as
+everything (fonts, canvas, storage) runs in the browser and deploys as
 static files.
 
 Highlights: 22 categorised templates (single/double/triple ring, square, oval,
 logo), Arabic contextual shaping on straight and curved text, curve-anywhere
 text conversion, auto stamp generator, ink distress / rough-edge / aged-paper
-effects, transparent PNG + SVG export, selection-aware right-click tool menu,
-and a neutral dark **brass** UI theme that never competes with blue stamp ink.
+effects, an integrated tool tray (one text box, shapes, ornaments, align) and a
+single unified slider section, selection-aware right-click tool menu, and a
+neutral dark **brass** UI theme that never competes with blue stamp ink.
 
 **Stack:** React 19 · Vite · Fabric.js v6 · Tailwind CSS v4 · Zustand · localStorage
 
@@ -130,21 +131,22 @@ src/
   App.jsx               Top bar + sidebars + canvas layout
   index.css             CSS variables, dark/light themes, checkerboard
   components/
-    TopBar.jsx          Global actions, theme switch, save/undo/redo, export
+    TopBar.jsx          Undo/redo, theme switch, stamp rename
     Toast.jsx           Auto-dismissing success / error / info messages
+    BottomBar.jsx       Footer: selection + zoom readout, ink colour palette
     DraggablePanel.jsx  Anchored side panels → bottom sheets under 768px
     ui.jsx              Icon-only sliders + buttons (tooltip/aria-label), toggles
-    LeftSidebar/        Icon rail (Templates only) + bottom save/library/settings pins
-    RightPanel/         Text + ornaments + shapes: insert, editing, align/arrange, sliders, layers
-    CanvasArea/         Fabric canvas, zoom controls, mm/cm rulers
+    LeftSidebar/        Templates rail (templates + presets)
+    RightPanel/         Layers + collapsible Tools tray (one text box, shapes,
+                        ornaments, arrange), selection properties, one slider stack
+    CanvasArea/         Fabric canvas, zoom controls; mm/cm rulers (off by default)
   **/__tests__/      Vitest unit tests for the pure logic modules
-    Modals/             Save-load gallery, template grid, export sizes
   store/useStampStore.js  Zustand state (nodes, viewport, history, toasts)
   templates/            22 stamp blueprints (classic round, seal, PAID…)
   utils/
-    canvas.js           Fabric handlers, arc text, snapping, PNG/SVG export
+    canvas.js           Fabric handlers, arc text, snapping
     fonts.js            Dynamic Google Font loading (6 writing systems)
-    storage.js          localStorage designs + autosave buffer
+    storage.js          localStorage preferences + autosave buffer
     history.js          50-state undo/redo stack
     texture.js          Ink distress / noise engine
     actions.js          Shared canvas commands
@@ -161,8 +163,6 @@ src/
 | `Ctrl/Cmd + Z` / `Ctrl + Shift + Z` | Undo / Redo |
 | `Ctrl + D` | Duplicate |
 | `Delete` / `Backspace` | Remove selection |
-| `Ctrl + S` | Save design |
-| `Ctrl + E` | Export PNG |
 | `Ctrl + N` | Clear canvas (reserved by Chrome/Edge — use the menu there) |
 | `Ctrl + G` / `Ctrl + Shift + G` | Group / Ungroup |
 | `Ctrl + [` / `Ctrl + ]` | Send backward / Bring forward |

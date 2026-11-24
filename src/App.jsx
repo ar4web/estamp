@@ -1,14 +1,11 @@
 import { useEffect } from "react";
-import { Save, Sliders, Wrench } from "lucide-react";
+import { Sliders, Wrench } from "lucide-react";
 import TopBar from "./components/TopBar";
 import LeftSidebar from "./components/LeftSidebar";
 import RightPanel from "./components/RightPanel";
 import CanvasArea from "./components/CanvasArea";
 import ToastHost from "./components/Toast";
-import SaveLoadModal from "./components/Modals/SaveLoadModal";
-import DownloadModal from "./components/Modals/DownloadModal";
 import BottomBar from "./components/BottomBar";
-import SettingsDrawer from "./components/SettingsDrawer";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { useIsMobile } from "./components/DraggablePanel";
 import useStampStore from "./store/useStampStore";
@@ -16,28 +13,12 @@ import useKeyboard from "./hooks/useKeyboard";
 import useAutoSave from "./hooks/useAutoSave";
 
 function MobileBar() {
-  const { leftOpen, rightOpen, toggleLeft, toggleRight, saveCurrent, dirty } = useStampStore();
+  const { leftOpen, rightOpen, toggleLeft, toggleRight } = useStampStore();
   return (
     <nav
       className="z-[60] flex shrink-0 items-center justify-around border-t md:hidden"
       style={{ height: "var(--bar-h)", background: "var(--bg-panel)", borderColor: "var(--border)" }}
     >
-      <button
-        type="button"
-        className="btn btn-ghost flex-1 relative"
-        aria-label="Save"
-        title="Save"
-        onClick={() => saveCurrent()}
-      >
-        <Save size={16} aria-hidden />
-        {dirty && (
-          <span
-            className="absolute right-3 top-1.5 h-1.5 w-1.5 rounded-full"
-            style={{ background: "var(--accent)" }}
-            aria-hidden
-          />
-        )}
-      </button>
       <button
         type="button"
         className="btn btn-ghost flex-1"
@@ -65,7 +46,6 @@ function MobileBar() {
 }
 
 export default function App() {
-  const modal = useStampStore((s) => s.modal);
   const theme = useStampStore((s) => s.theme);
   const applyTheme = useStampStore((s) => s.applyTheme);
   const mobile = useIsMobile();
@@ -108,9 +88,6 @@ export default function App() {
       <MobileBar />
 
       <ToastHost />
-      <SettingsDrawer />
-      {modal === "saveload" && <SaveLoadModal />}
-      {modal === "download" && <DownloadModal />}
     </div>
    </ErrorBoundary>
   );
