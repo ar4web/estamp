@@ -8,14 +8,11 @@ import {
   applyTemplate,
   templateFonts,
   clipObjectToRing,
-  exportJPG,
-  exportPNG,
-  exportSVG,
   findPrimaryTextLayer,
   nextId,
 } from "./canvas";
 import { getTemplate } from "../templates";
-import { fieldText, refreshLiveFields } from "./fields";
+import { fieldText } from "./fields";
 import { ensureFonts } from "./fonts";
 
 const S = () => useStampStore.getState();
@@ -281,78 +278,6 @@ export async function loadTemplate(idOrTemplate, { silent = false } = {}) {
   S().syncSelection();
   S().setDesignName(tpl.name);
   if (!silent) S().toast(`Template "${tpl.name}" applied`, "success");
-}
-
-function exportLabel(options = {}) {
-  const bits = [];
-  if (options.sizeMm) bits.push(`${options.sizeMm} mm`);
-  if (options.dpi) bits.push(`${options.dpi} dpi`);
-  if (options.bleedMm) bits.push(`${options.bleedMm} mm bleed`);
-  if (options.cmykSafe) bits.push("CMYK-safe");
-  return bits.length ? ` (${bits.join(" · ")})` : "";
-}
-
-function prepareExport() {
-  const canvas = C();
-  if (!canvas) return null;
-  refreshLiveFields(canvas);
-  return canvas;
-}
-
-function afterExport(options = {}) {
-  if (!options.bumpSerial) return;
-  const canvas = C();
-  if (!canvas) return;
-  if (refreshLiveFields(canvas, { bumpSerial: true })) {
-    S().commit();
-    S().touchSelection();
-  }
-}
-
-export async function doExportPNG(multiplier = 3, options = {}) {
-  const canvas = prepareExport();
-  if (!canvas) return;
-  try {
-    const name = await exportPNG(canvas, multiplier, undefined, {
-      ...options,
-      name: options.name || S().designName,
-    });
-    const suffix = options.transparentOnly === false ? "" : " transparent";
-    S().toast(`Exported ${name}${suffix}${exportLabel(options)}`, "success");
-    afterExport(options);
-  } catch (e) {
-    S().toast(`Export failed: ${e.message}`, "error");
-  }
-}
-
-export function doExportSVG(options = {}) {
-  const canvas = prepareExport();
-  if (!canvas) return;
-  try {
-    const name = exportSVG(canvas, undefined, {
-      ...options,
-      name: options.name || S().designName,
-    });
-    S().toast(`Exported ${name} (SVG)${exportLabel(options)}`, "success");
-    afterExport(options);
-  } catch (e) {
-    S().toast(`SVG export failed: ${e.message}`, "error");
-  }
-}
-
-export async function doExportJPG(multiplier = 3, options = {}) {
-  const canvas = prepareExport();
-  if (!canvas) return;
-  try {
-    const name = await exportJPG(canvas, multiplier, undefined, {
-      ...options,
-      name: options.name || S().designName,
-    });
-    S().toast(`Exported ${name}${exportLabel(options)}`, "success");
-    afterExport(options);
-  } catch (e) {
-    S().toast(`JPG export failed: ${e.message}`, "error");
-  }
 }
 
 /* ------------------------------------------------------------------ */

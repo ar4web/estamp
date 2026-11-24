@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { LayoutGrid } from "lucide-react";
 import { FONT_SETS, fabricFamily, loadFont } from "../utils/fonts";
 
 // Per-script fallback glyphs, used when the text box is empty.
@@ -15,7 +16,15 @@ const SCRIPT_OF = Object.fromEntries(
   FONT_SETS.flatMap((g) => g.fonts.map((f) => [f, g.script]))
 );
 
-const FILTERS = ["All", "Arabic", "Latin", "Cyrillic", "CJK"];
+// Icon-only script filter: one glyph per script + a grid for "All".
+// Internal ids stay text ("All"/"Arabic"/...) so autoScriptTransition keeps working.
+const FILTERS = [
+  { id: "All", glyph: <LayoutGrid size={13} strokeWidth={1.75} aria-hidden />, name: "All scripts" },
+  { id: "Arabic", glyph: "ع", name: "Arabic" },
+  { id: "Latin", glyph: "A", name: "Latin" },
+  { id: "Cyrillic", glyph: "Д", name: "Cyrillic" },
+  { id: "CJK", glyph: "字", name: "Chinese, Japanese, Korean" },
+];
 const ARABIC_RE = /[\u0600-\u06FF]/;
 
 export const isArabicText = (text) => ARABIC_RE.test(String(text || ""));
@@ -107,7 +116,7 @@ export function FontRow({ family, selected, preview, weight, onSelect }) {
  *
  * Typing Arabic (e.g. الرياض) auto-selects the Arabic filter; switching back
  * to non-Arabic text restores All. Only the transition triggers the switch,
- * so a manual pill choice is never overridden on every keystroke.
+ * so a manual script choice is never overridden on every keystroke.
  */
 export default function FontPicker({
   fonts,
@@ -154,23 +163,29 @@ export default function FontPicker({
         }}
       >
         {FILTERS.map((s) => {
-          const on = script === s;
+          const on = script === s.id;
           return (
             <button
-              key={s}
+              key={s.id}
               type="button"
-              className={`font-script ${on ? "is-on" : ""}`}
+              className={`font-script font-script-glyph ${on ? "is-on" : ""}`}
               aria-pressed={on}
-              onClick={() => setScript(s)}
+              aria-label={s.name}
+              title={s.name}
+              onClick={() => setScript(s.id)}
               style={{
                 flex: "0 0 auto",
-                padding: "3px 8px",
+                minWidth: 26,
                 minHeight: 22,
-                whiteSpace: "nowrap",
+                display: "grid",
+                placeItems: "center",
+                padding: "2px 4px",
+                fontSize: 13,
+                lineHeight: 1,
                 cursor: "pointer",
               }}
             >
-              {s}
+              {s.glyph}
             </button>
           );
         })}

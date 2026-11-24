@@ -196,21 +196,16 @@ export default function OrnamentsTool() {
   ];
 
   return (
-    <div className="space-y-2.5">
-      <div className="grid grid-cols-4 gap-1.5">
-        {items.map((it) => (
-          <IconBtn
-            key={it.id}
-            icon={it.icon}
-            label={`Add ${it.label}`}
-            onClick={it.run}
-            size={17}
-          />
-        ))}
-      </div>
-      <p className="text-[9px] leading-relaxed" style={{ color: "var(--text-mute)" }}>
-        Drops at the paper centre in current ink. Move and scale like any layer.
-      </p>
+    <div className="grid grid-cols-4 gap-1.5">
+      {items.map((it) => (
+        <IconBtn
+          key={it.id}
+          icon={it.icon}
+          label={`Add ${it.label}`}
+          onClick={it.run}
+          size={17}
+        />
+      ))}
     </div>
   );
 }

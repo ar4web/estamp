@@ -2,13 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import useStampStore from "../../store/useStampStore";
 import useCanvas from "../../hooks/useCanvas";
 import { CANVAS_SIZE, addImageFromFile, applyStampFilter, clipObjectToRing } from "../../utils/canvas";
-import { isStampFile } from "../../utils/stampfile";
 import {
   alignSelection,
   bringToFront,
   clearCanvas,
   deleteSelection,
-  doExportPNG,
   duplicateSelection,
   selectAll,
   sendToBack,
@@ -100,10 +98,6 @@ export default function CanvasArea() {
     const file = e.dataTransfer.files?.[0];
     if (!file || !store.canvas) return;
     try {
-      if (isStampFile(file)) {
-        await store.importStampFile(file);
-        return;
-      }
       const obj = await addImageFromFile(store.canvas, file);
       if (obj.type === "image") await applyStampFilter(store.canvas, obj, true);
       try {
@@ -180,9 +174,6 @@ export default function CanvasArea() {
         { label: "Undo", shortcut: "Ctrl+Z", action: () => store.undo() },
         { label: "Redo", shortcut: "Ctrl+Shift+Z", action: () => store.redo() },
         { label: "Select all", shortcut: "Ctrl+A", action: selectAll },
-        { sep: true },
-        { label: "Export PNG", shortcut: "Ctrl+E", action: () => doExportPNG(3) },
-        { label: "Preferences", shortcut: "Ctrl+K", action: () => store.toggleSettings() },
         { sep: true },
         { label: "Clear canvas", shortcut: "Ctrl+N", danger: true, action: clearCanvas },
       ];

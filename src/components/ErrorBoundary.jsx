@@ -21,7 +21,7 @@ export default class ErrorBoundary extends Component {
 
   resetPrefs = () => {
     try {
-      // Preferences only — saved designs (stamp_designs) are kept.
+      // Preferences only — the autosaved draft is kept.
       localStorage.removeItem("stamp_prefs");
       localStorage.removeItem("stamp_theme");
       localStorage.removeItem("stamp_autosave");
@@ -74,7 +74,7 @@ export default class ErrorBoundary extends Component {
             </button>
           </div>
           <p className="mt-3 text-[10px]" style={{ color: "var(--text-dim)" }}>
-            Resetting settings keeps your saved designs.
+            Resetting clears preferences and the autosaved draft.
           </p>
         </div>
       </div>

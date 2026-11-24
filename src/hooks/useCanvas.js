@@ -4,7 +4,7 @@ import useStampStore from "../store/useStampStore";
 import { CANVAS_SIZE, initCanvas, styleSelection } from "../utils/canvas";
 import { preloadDefaults, restoreCustomFonts } from "../utils/fonts";
 import { loadTemplate } from "../utils/actions";
-import { getDesigns, readAutosave, getPrefs, setPrefs } from "../utils/storage";
+import { readAutosave, getPrefs, setPrefs } from "../utils/storage";
 
 /** Mounts the fabric canvas, wires events and runs first-run bootstrapping. */
 export default function useCanvas(elRef) {
@@ -54,22 +54,18 @@ export default function useCanvas(elRef) {
       ]);
       if (cancelled) return;
       const autosave = readAutosave();
-      const designs = getDesigns();
       const prefs = getPrefs();
 
       if (autosave && autosave.json && (autosave.json.objects || []).length) {
         await store.restoreAutosave();
         store.refreshFields();
-      } else if (!designs.length) {
-        await loadTemplate("classicRound", { silent: true });
-        store.toast(
-          prefs.visited ? "Starter template loaded" : `Welcome to ${APP_NAME}`,
-          "success"
-        );
-        store.setPulseTemplates(true);
-        setTimeout(() => useStampStore.getState().setPulseTemplates(false), 9000);
       } else {
         await loadTemplate("classicRound", { silent: true });
+        if (!prefs.visited) {
+          store.toast(`Welcome to ${APP_NAME}`, "success");
+          store.setPulseTemplates(true);
+          setTimeout(() => useStampStore.getState().setPulseTemplates(false), 9000);
+        }
       }
       setPrefs({ visited: true });
       // Re-apply the saved stamp surface colour (templates/JSON may reset it).

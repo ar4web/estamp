@@ -5,13 +5,10 @@ import {
   deserialize,
   rebuildArc,
   serialize,
-  styleSelection,
-  thumbnail,
 } from "../utils/canvas";
 import * as storage from "../utils/storage";
 import { applyAccent, applyCorners, applyThemeClass, DEFAULT_ACCENT } from "../utils/theme";
 import { refreshLiveFields } from "../utils/fields";
-import { buildStampFile, downloadStampFile, parseStampFile } from "../utils/stampfile";
 import { objectInkHex } from "../utils/color";
 import { tintFabricImage } from "../utils/image";
 
@@ -45,7 +42,7 @@ export const useStampStore = create((set, get) => ({
 
   /* ---------------- viewport -------------- */
   zoom: 1,
-  showRulers: true,
+  showRulers: false,
   showGrid: false,
   setZoom: (z) => {
     const c = get().canvas;
@@ -70,56 +67,14 @@ export const useStampStore = create((set, get) => ({
   /* ---------------- canvas appearance ----------------- */
   selectionColor: storage.getPrefs().selectionColor ?? "#f59e0b",
   selectionBorderWidth: storage.getPrefs().selectionBorderWidth ?? 1,
-  setSelectionColor: (color) => {
-    const c = get().canvas;
-    storage.setPrefs({ selectionColor: color });
-    set({ selectionColor: color });
-    if (c) {
-      styleSelection(c, color, get().selectionBorderWidth);
-      c.requestRenderAll();
-    }
-  },
-  setSelectionBorderWidth: (w) => {
-    const c = get().canvas;
-    storage.setPrefs({ selectionBorderWidth: w });
-    set({ selectionBorderWidth: w });
-    if (c) {
-      c.selectionLineWidth = w;
-      c.requestRenderAll();
-    }
-  },
 
   gridSize: storage.getPrefs().gridSize ?? 20,
   gridOpacity: storage.getPrefs().gridOpacity ?? 0.35,
-  setGridSize: (v) => {
-    storage.setPrefs({ gridSize: v });
-    set({ gridSize: v });
-  },
-  setGridOpacity: (v) => {
-    storage.setPrefs({ gridOpacity: v });
-    set({ gridOpacity: v });
-  },
 
   tooltipPos: storage.getPrefs().tooltipPos ?? "top-right",
-  setTooltipPos: (p) => {
-    storage.setPrefs({ tooltipPos: p });
-    set({ tooltipPos: p });
-  },
-
-  /* ---------------- settings drawer ---------------- */
-  settingsOpen: false,
-  openSettings: () => set({ settingsOpen: true }),
-  closeSettings: () => set({ settingsOpen: false }),
-  toggleSettings: () => set((x) => ({ settingsOpen: !x.settingsOpen })),
 
   /* ---------------- personalisation / accessibility ---------------- */
   accentColor: storage.getPrefs().accentColor ?? DEFAULT_ACCENT,
-  setAccentColor: (hex) => {
-    if (!/^#([0-9a-f]{6})$/i.test(hex || "")) return;
-    storage.setPrefs({ accentColor: hex });
-    applyAccent(hex);
-    set({ accentColor: hex });
-  },
   a11y: {
     reduceMotion: !!storage.getPrefs().a11yReduceMotion,
     highContrast: !!storage.getPrefs().a11yHighContrast,
@@ -133,20 +88,15 @@ export const useStampStore = create((set, get) => ({
     root.classList.toggle("a11y-high-contrast", next.highContrast);
     root.classList.toggle("a11y-large-controls", next.largeControls);
     root.classList.toggle("a11y-always-focus", next.alwaysFocus);
+    set({ a11y: next });
     storage.setPrefs({
       a11yReduceMotion: next.reduceMotion,
       a11yHighContrast: next.highContrast,
       a11yLargeControls: next.largeControls,
       a11yAlwaysFocus: next.alwaysFocus,
     });
-    set({ a11y: next });
   },
   uiRadius: storage.getPrefs().uiRadius ?? "soft",
-  setUiRadius: (style) => {
-    const next = applyCorners(style);
-    storage.setPrefs({ uiRadius: next });
-    set({ uiRadius: next });
-  },
   applyPersonalisation: () => {
     const st = get();
     applyAccent(st.accentColor || DEFAULT_ACCENT);
@@ -167,30 +117,15 @@ export const useStampStore = create((set, get) => ({
     get().applyTheme(next);
   },
 
-  palettes: storage.getPalettes(),
-  refreshPalettes: () => set({ palettes: storage.getPalettes() }),
-  savePalette: (name, colors) => {
-    const { record, persisted } = storage.savePalette({
-      name,
-      colors: colors || [get().inkColor],
-    });
-    set({ palettes: storage.getPalettes() });
-    if (persisted) get().toast(`Saved ink set "${record.name}"`, "success");
-    else get().toast("Ink set kept for this session only — browser storage is full", "error");
-    return record;
-  },
-  removePalette: (id) => {
-    storage.deletePalette(id);
-    set({ palettes: storage.getPalettes() });
-    get().toast("Ink set removed", "info");
-  },
 
-  company: storage.getCompany(),
-  setCompany: (patch) => {
-    const company = storage.setCompany(patch);
-    set({ company });
-    return company;
-  },
+  /* ---------------- shape placement defaults ---------------- */
+  shapeStroke: 6,
+  shapeScale: 100,
+  shapeGap: 8,
+  shapeDouble: false,
+  shapeFilled: false,
+  shapeDashed: false,
+  setShapeDefaults: (patch) => set(patch),
 
   /* ---------------- ink ------------------- */
   inkColor: storage.getPrefs().inkColor ?? "#003399",
@@ -236,19 +171,6 @@ export const useStampStore = create((set, get) => ({
   /* ---------------- colours --------------- */
   canvasColor: storage.getPrefs().canvasColor ?? "",
   workspaceColor: storage.getPrefs().workspaceColor ?? "",
-  setCanvasColor: (hex) => {
-    const c = get().canvas;
-    if (c) {
-      c.backgroundColor = hex || undefined;
-      c.requestRenderAll();
-    }
-    storage.setPrefs({ canvasColor: hex });
-    set({ canvasColor: hex });
-  },
-  setWorkspaceColor: (hex) => {
-    storage.setPrefs({ workspaceColor: hex });
-    set({ workspaceColor: hex });
-  },
 
   /* ---------------- panels ---------------- */
   leftOpen: true,
@@ -257,11 +179,6 @@ export const useStampStore = create((set, get) => ({
   toggleRight: () => set((s) => ({ rightOpen: !s.rightOpen })),
   pulseTemplates: false,
   setPulseTemplates: (v) => set({ pulseTemplates: v }),
-
-  /* ---------------- modals ---------------- */
-  modal: null,
-  openModal: (modal) => set({ modal }),
-  closeModal: () => set({ modal: null }),
 
 
   /* ---------------- toasts ---------------- */
@@ -334,120 +251,9 @@ export const useStampStore = create((set, get) => ({
   },
 
   /* ---------------- designs --------------- */
-  designs: storage.getDesigns(),
-  currentDesignId: null,
   designName: "Untitled stamp",
   setDesignName: (designName) => set({ designName }),
-  refreshDesigns: () => set({ designs: storage.getDesigns() }),
-  saveCurrent: (name) => {
-    const c = get().canvas;
-    if (!c) return null;
-    const { record, persisted } = storage.saveDesign({
-      id: get().currentDesignId,
-      name: name || get().designName,
-      json: serialize(c),
-      thumb: thumbnail(c),
-    });
-    set({
-      currentDesignId: record.id,
-      designName: record.name,
-      designs: storage.getDesigns(),
-      // Keep dirty when the write failed so the UI never claims an unsaved
-      // design is safe.
-      ...(persisted ? { dirty: false } : {}),
-    });
-    if (persisted) {
-      get().toast(`Saved "${record.name}"`, "success");
-    } else {
-      get().toast("Browser storage is full — kept for this session; export a .stamp to be safe", "error");
-    }
-    return record;
-  },
-  saveAsNew: (name) => {
-    set({ currentDesignId: null });
-    return get().saveCurrent(name || `${get().designName} copy`);
-  },
-  loadDesign: async (id) => {
-    const c = get().canvas;
-    const record = storage.getDesigns().find((d) => d.id === id);
-    if (!c || !record) return false;
-    history.lock();
-    try {
-      await deserialize(c, record.json);
-    } catch (e) {
-      get().toast(`Could not load "${record.name}": ${e.message || "corrupt design data"}`, "error");
-      return false;
-    } finally {
-      history.unlock();
-    }
-    set({
-      currentDesignId: record.id,
-      designName: record.name,
-      selected: null,
-      dirty: false,
-    });
-    get().resetHistory();
-    get().touchLayers();
-    get().toast(`Loaded "${record.name}"`, "success");
-    return true;
-  },
-  removeDesign: (id) => {
-    storage.deleteDesign(id);
-    set({ designs: storage.getDesigns() });
-    get().toast("Design deleted", "info");
-  },
-  exportStampFile: () => {
-    const c = get().canvas;
-    if (!c) return null;
-    const name = downloadStampFile(
-      buildStampFile({
-        name: get().designName,
-        json: serialize(c),
-        ink: get().inkColor,
-        canvasColor: get().canvasColor,
-        company: get().company,
-      }),
-      get().designName
-    );
-    get().toast(`Exported ${name}`, "success");
-    return name;
-  },
-  importStampFile: async (file) => {
-    const c = get().canvas;
-    if (!c || !file) return false;
-    let data;
-    try {
-      data = parseStampFile(await file.text());
-    } catch (e) {
-      get().toast(`Import failed: ${e.message}`, "error");
-      return false;
-    }
-    history.lock();
-    try {
-      await deserialize(c, data.json);
-    } catch (e) {
-      get().toast(`Import failed: ${e.message || "the .stamp file is corrupt"}`, "error");
-      return false;
-    } finally {
-      history.unlock();
-    }
-    if (data.ink) {
-      storage.setPrefs({ inkColor: data.ink });
-      set({ inkColor: data.ink });
-    }
-    if (data.canvasColor != null) get().setCanvasColor(data.canvasColor);
-    if (data.company) get().setCompany(data.company);
-    set({
-      currentDesignId: null,
-      designName: data.name || "Imported stamp",
-      selected: null,
-      dirty: true,
-    });
-    get().resetHistory();
-    get().touchLayers();
-    get().toast(`Imported "${data.name || file.name}"`, "success");
-    return true;
-  },
+
   refreshFields: (opts) => {
     const c = get().canvas;
     if (!c) return;
@@ -455,21 +261,6 @@ export const useStampStore = create((set, get) => ({
       get().commit();
       get().touchSelection();
     }
-  },
-
-  clips: storage.getClips(),
-  refreshClips: () => set({ clips: storage.getClips() }),
-  addClip: ({ name, json, thumb }) => {
-    const { record, persisted } = storage.saveClip({ name, json, thumb });
-    set({ clips: storage.getClips() });
-    if (persisted) get().toast(`Saved clip "${record.name}"`, "success");
-    else get().toast("Clip kept for this session only — browser storage is full", "error");
-    return record;
-  },
-  removeClip: (id) => {
-    storage.deleteClip(id);
-    set({ clips: storage.getClips() });
-    get().toast("Clip removed", "info");
   },
 
   /* ---------------- autosave -------------- */
@@ -491,15 +282,6 @@ export const useStampStore = create((set, get) => ({
     set({ selected: null });
     get().toast("Previous session restored", "success");
     return true;
-  },
-  discardAutosave: () => {
-    storage.clearAutosave();
-    get().toast("Draft session cleared", "info");
-  },
-  resetStudioPrefs: () => {
-    storage.resetPrefs();
-    get().toast("Studio settings reset — reload to apply", "info");
-    window.location.reload();
   },
 }));
 
