@@ -17,8 +17,9 @@ import OrnamentsTool from "./OrnamentsTool";
 
 /**
  * Inspector — top to bottom:
- *  Layers · [Tools ▾ (single text box / shapes / ornaments / arrange)] ·
- *  selected-layer properties · THE one slider stack.
+ *  Layers · align/arrange tools · selected-layer properties (or the
+ *  "nothing selected" empty state) · [Tools ▾ (single text box / shapes /
+ *  ornaments)] · THE one slider stack.
  * No headings; hairline dividers only.
  */
 export default function RightPanel() {
@@ -80,6 +81,15 @@ export default function RightPanel() {
         <LayersPanel />
         <Divider />
 
+        {/* Align / arrange tools — right below Layers */}
+        <ArrangeRow />
+        <Divider />
+
+        {/* Selected-layer property buttons (non-slider); empty state when
+            nothing is selected */}
+        {properties}
+        <Divider />
+
         {/* Tools — one collapsible section (icon-only, no text) */}
         <div>
           <button
@@ -107,15 +117,9 @@ export default function RightPanel() {
               <ShapesPanel />
               <Divider />
               <OrnamentsTool />
-              <Divider />
-              <ArrangeRow />
             </div>
           )}
         </div>
-
-        {/* Selected-layer property buttons (non-slider) */}
-        <Divider />
-        {properties}
 
         {/* THE one slider stack */}
         <Divider />
