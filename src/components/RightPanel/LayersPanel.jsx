@@ -128,7 +128,14 @@ export default function LayersPanel() {
               }}
             >
               <Icon size={13} style={{ color: objectInkHex(obj) || "var(--text-dim)" }} className="shrink-0" />
-              <span className="min-w-0 flex-1" aria-hidden />
+              <span
+                className="layer-name min-w-0 flex-1 truncate text-[9px] leading-none"
+                style={{ color: "var(--text-dim)" }}
+                title={obj.name || kind}
+                aria-hidden="true"
+              >
+                {obj.name || kind}
+              </span>
               <span
                 className="h-2.5 w-2.5 shrink-0 border"
                 style={{
